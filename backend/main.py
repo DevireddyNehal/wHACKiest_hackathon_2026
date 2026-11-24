@@ -42,6 +42,7 @@ app.include_router(synapse_swarm.router)
 app.include_router(ghost_butler.router)
 app.include_router(rewind_memory.router)
 app.include_router(voice_gateway.router)
+app.include_router(voice_gateway.command_router)
 
 @app.get("/")
 def root_status():
@@ -63,7 +64,8 @@ def api_status():
             "pillar_2_airtouch_voice": "/ws/voice",
             "pillar_3_synapse_swarm": "/api/swarm/execute",
             "pillar_4_ghost_butler": "/api/butler/missions",
-            "pillar_5_rewind_memory": "/api/memory/search"
+            "pillar_5_rewind_memory": "/api/memory/search",
+            "voice_commands": "/api/voice/command"
         },
         "docs": "/docs"
     }

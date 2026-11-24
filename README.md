@@ -56,7 +56,8 @@ The World Wide Web was built in 1993 for hyperlinked document reading. Today, we
 
 ### 2. 🖐️ AirTouch *(Air Mode — Spatial Hands-Free Interaction)*
 * **Prototype:** The dashboard demonstrates a virtual pointer and simulated pinch/scroll controls using mouse input.
-* **Limit:** Webcam hand tracking and voice control are not implemented in this prototype; the page does not request camera access.
+* **Voice agent:** Use the dashboard microphone or typed command bar to navigate tools, run the sample comparison, analyze the shown SmartPoint excerpt, enable AirTouch, search notes, or scroll.
+* **Limit:** Webcam hand tracking is not implemented; voice recognition depends on browser support and permission. The page does not request camera access.
 
 ### 3. ⚡ SynapseWeb *(The Multi-Tab Swarm Engine)*
 * **Prototype:** Returns an illustrative comparison matrix to demonstrate how multi-site results could be presented.
@@ -97,6 +98,12 @@ Choose a pillar card or sidebar item to open its own screen; use **Overview** to
 
 The dashboard works without the Chrome extension. Loading `extension/` in Chrome is optional; extension features may require separate setup.
 
+### Voice commands
+
+On the dashboard, click **Start listening** and say one short command, or type the same command and choose **Run command**. Try “open SmartPoint”, “run comparison”, “analyze this snippet”, “turn on AirTouch”, “search notes for hackathon”, or “scroll down”. Chrome/Edge speech recognition requires microphone permission and a secure page (HTTPS or localhost); if recognition is unavailable, the typed command bar still works.
+
+Recognition is one command at a time. The browser may process microphone audio through its speech provider; only the recognized words are sent to AuraOS. Command handling uses a small allowlist, and voice cannot trigger reminder alerts, bookings, payments, or messages. Spoken replies can be turned off in the dashboard.
+
 ### Publish a shareable demo with Render
 
 The repository includes a Render Blueprint in `render.yaml` for deploying the dashboard and FastAPI backend together. Keep the GitHub repository private and grant Render access to it:
@@ -119,7 +126,7 @@ The service uses demo/mock integrations and requires no API keys. The free insta
 From the Overview, click a pillar card to open its own screen. Each screen includes its own quick-demo steps.
 
 1. **SmartPoint:** Edit the sample excerpt or question, then click **Analyze this snippet**. The result only uses that excerpt. In Chrome, hover over a small element and press `Alt+S` to open the extension HUD.
-2. **AirTouch:** Enable the pointer demo, aim at a practice tile, then simulate a pinch. No camera or hand tracking is used.
+2. **Voice agent / AirTouch:** Click **Start listening** and say “turn on AirTouch” or “open SynapseWeb”. You can also type the same commands if speech recognition is unavailable. Enable the pointer demo, aim at a practice tile, then simulate a pinch; no camera or hand tracking is used.
 3. **SynapseWeb:** Enter a comparison goal and click **Run sample comparison**. Results are illustrative; no sites are queried and no cart is prepared.
 4. **GhostButler:** Create a reminder template with an optional scheduled time. At or after that time, choose **Preview alert** and confirm. This creates an in-app preview only.
 5. **RewindWeb:** Search `LLM` or `hackathon`, save an optional text note, and use the slider to select a record. Search is keyword-based and memory resets when the backend restarts.

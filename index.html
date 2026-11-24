@@ -52,6 +52,22 @@
     .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); }
     .connection-dot.live { background: var(--mint); box-shadow: 0 0 12px #90f0cb77; }
     .connection-dot.offline { background: var(--red); }
+    .voice-agent { margin: 18px 0 2px; padding: 15px; border: 1px solid #35443e; border-radius: 13px; background: linear-gradient(120deg, #17231f, #171a24 62%); }
+    .voice-agent-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .voice-agent-head h2 { margin: 0; font-size: 15px; }
+    .voice-agent-head p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .voice-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; margin-top: 12px; }
+    .voice-controls input { min-width: 0; }
+    .voice-speak-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .voice-speak-toggle input { width: auto; min-height: auto; margin: 0; accent-color: var(--mint); }
+    .voice-agent .status-line { margin: 9px 0 0; }
+    .voice-agent .status-line[data-state="error"] { color: var(--red); }
+    .voice-agent .status-line[data-state="success"] { color: var(--mint); }
+    .voice-transcript { min-height: 16px; }
+    .voice-help { margin-top: 9px; color: #a7adbd; font-size: 10px; }
+    .voice-help summary { color: var(--mint); cursor: pointer; font-weight: 700; }
+    .voice-help p { margin: 7px 0 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .hero { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 58px 0 32px; }
     .eyebrow { color: var(--mint); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
     h1 { margin: 10px 0 12px; font-size: clamp(36px, 5vw, 60px); line-height: 1.02; letter-spacing: -.055em; }
@@ -168,6 +184,10 @@
       .nav a { flex: 0 0 auto; gap: 7px; padding: 6px 8px; font-size: 10px; }
       .nav-icon { width: 21px; height: 21px; font-size: 11px; }
       .main { padding: 17px 15px 48px; }
+      .voice-agent-head { align-items: stretch; flex-direction: column; }
+      .voice-controls { grid-template-columns: 1fr 1fr; }
+      .voice-controls input { grid-column: 1 / -1; }
+      .voice-speak-toggle { grid-column: 1 / -1; }
       .hero { align-items: start; flex-direction: column; padding: 38px 0 25px; }
       .quick-grid { grid-template-columns: repeat(2, 1fr); }
       .quick-card { min-height: 93px; }
@@ -218,6 +238,26 @@
           </div>
         <div class="connection" role="status"><span class="connection-dot" id="backend-dot"></span><span id="backend-label">Connecting to local demo…</span></div>
       </div>
+
+      <section class="voice-agent" aria-labelledby="voice-agent-title">
+        <div class="voice-agent-head">
+          <div><h2 id="voice-agent-title">Voice agent</h2><p>Give a short command to navigate or run a safe demo action.</p></div>
+          <button class="btn primary" id="voice-listen" type="button" aria-pressed="false">Start listening</button>
+        </div>
+        <form class="voice-controls" id="voice-command-form">
+          <label class="sr-only" for="voice-command-input">Type a command</label>
+          <input id="voice-command-input" maxlength="250" placeholder="Try “open SynapseWeb” or “search notes for hackathon”" autocomplete="off">
+          <button class="btn" id="voice-command-submit" type="submit">Run command</button>
+          <label class="voice-speak-toggle"><input id="voice-speak" type="checkbox" checked> Speak replies</label>
+        </form>
+        <p class="status-line" id="voice-status" role="status" aria-live="polite">Microphone is off. Type a command or start listening.</p>
+        <p class="hint voice-transcript" id="voice-transcript" aria-live="polite">Commands only use the words you say; the page does not capture surrounding content.</p>
+        <details class="voice-help">
+          <summary>Commands and privacy</summary>
+          <p>Try “open SmartPoint”, “run comparison”, “analyze this snippet”, “turn on AirTouch”, “search notes for LLM”, or “scroll down”.</p>
+          <p>The microphone starts only after you click. Browser speech recognition may process audio through your browser provider; only the recognized command is sent to AuraOS. Reminder alerts still require manual confirmation, and voice cannot book, pay, or send messages.</p>
+        </details>
+      </section>
 
         <section id="home" class="screen" aria-labelledby="home-title">
       <header class="hero">
@@ -396,7 +436,7 @@
           headers: { "Content-Type": "application/json", ...(options.headers || {}) }
         });
       } catch {
-        throw new Error("Cannot reach the local AuraOS backend. Start it with the README quickstart command.");
+        throw new Error("Cannot reach the AuraOS backend. Check the connection and try again.");
       }
       let data;
       try { data = await response.json(); } catch { data = {}; }
@@ -413,6 +453,168 @@
     function showError(container, message) {
       container.replaceChildren(make("div", "empty-state", message));
     }
+
+    function initVoiceAgent() {
+      const listenButton = byId("voice-listen");
+      const commandForm = byId("voice-command-form");
+      const commandInput = byId("voice-command-input");
+      const submitButton = byId("voice-command-submit");
+      const status = byId("voice-status");
+      const transcript = byId("voice-transcript");
+      const speakToggle = byId("voice-speak");
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const secure = window.isSecureContext;
+      let recognition = null;
+      let phase = "idle";
+      let commandInFlight = false;
+
+      function setVoiceStatus(message, state = "") {
+        status.textContent = message;
+        status.dataset.state = state;
+        status.className = `status-line${state ? ` ${state}` : ""}`;
+      }
+
+      function setPhase(next) {
+        phase = next;
+        const active = ["starting", "listening", "stopping", "processing"].includes(next);
+        listenButton.textContent = next === "listening" ? "Stop listening" : "Start listening";
+        listenButton.setAttribute("aria-pressed", String(next === "listening"));
+        listenButton.disabled = !Recognition || !secure || ["starting", "stopping", "processing"].includes(next);
+        commandInput.disabled = active || commandInFlight;
+        submitButton.disabled = active || commandInFlight;
+      }
+
+      function speakReply(message) {
+        if (!speakToggle.checked || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = "en-IN";
+        utterance.onerror = () => setVoiceStatus("Spoken reply failed; the response is still shown as text.", "error");
+        window.speechSynthesis.speak(utterance);
+      }
+
+      async function runCommand(rawCommand) {
+        const command = rawCommand.trim().slice(0, 250);
+        if (!command || commandInFlight) return;
+        commandInFlight = true;
+        setPhase("processing");
+        transcript.textContent = `Command: ${command}`;
+        setVoiceStatus("Understanding your command…");
+        try {
+          const result = await api("/api/voice/command", {
+            method: "POST",
+            body: JSON.stringify({ command })
+          });
+          const action = result.action || { type: "none" };
+          if (action.type === "navigate") {
+            showScreen(action.screen, true);
+          } else if (action.type === "run_comparison") {
+            showScreen(action.screen, true);
+            byId("swarm-button").click();
+          } else if (action.type === "analyze_snippet") {
+            showScreen(action.screen, true);
+            byId("analyze-button").click();
+          } else if (action.type === "enable_pointer") {
+            showScreen(action.screen, true);
+            if (!airEnabled) byId("air-toggle").click();
+          } else if (action.type === "search_memory") {
+            showScreen(action.screen, true);
+            commandInput.value = action.query || "";
+            await searchMemories(commandInput.value);
+          } else if (action.type === "scroll") {
+            if (action.direction === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+            else window.scrollBy({ top: action.direction === "down" ? 420 : -420, behavior: "smooth" });
+          } else if (action.type === "confirmation_required") {
+            showScreen(action.screen, true);
+          }
+          setVoiceStatus(result.reply, result.intent === "unknown" ? "error" : "success");
+          speakReply(result.reply);
+        } catch (error) {
+          setVoiceStatus(error.message || "The command failed. Please try again.", "error");
+        } finally {
+          commandInFlight = false;
+          setPhase("idle");
+        }
+      }
+
+      commandForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        runCommand(commandInput.value);
+      });
+
+      if (!secure) {
+        listenButton.disabled = true;
+        setVoiceStatus("Microphone commands require HTTPS or localhost. Typed commands still work.", "error");
+      } else if (!Recognition) {
+        listenButton.disabled = true;
+        setVoiceStatus("This browser does not support speech recognition. Typed commands still work.");
+      } else {
+        recognition = new Recognition();
+        recognition.lang = "en-IN";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onstart = () => {
+          setPhase("listening");
+          setVoiceStatus("Listening. Say one command, then pause.");
+        };
+        recognition.onresult = (event) => {
+          const finalResult = event.results[event.results.length - 1];
+          const command = finalResult && finalResult[0] ? finalResult[0].transcript.trim() : "";
+          if (!command) {
+            setPhase("idle");
+            setVoiceStatus("No command was recognized. Try again or type it below.", "error");
+            return;
+          }
+          runCommand(command);
+        };
+        recognition.onerror = (event) => {
+          if (event.error === "aborted" && phase === "stopping") return;
+          const messages = {
+            "not-allowed": "Microphone permission was denied. Allow microphone access in browser settings.",
+            "service-not-allowed": "The browser speech service is unavailable. Try typed commands.",
+            "audio-capture": "No microphone was found. Connect one or use typed commands.",
+            "no-speech": "No speech was heard. Check your microphone and try again.",
+            "network": "Speech recognition needs a network connection. Try typed commands.",
+            "language-not-supported": "This browser does not support English (India) recognition."
+          };
+          setPhase("idle");
+          setVoiceStatus(messages[event.error] || "Speech recognition stopped. Try again or type a command.", "error");
+        };
+        recognition.onend = () => {
+          if (phase === "stopping") {
+            setPhase("idle");
+            setVoiceStatus("Listening stopped.");
+          } else if (phase === "starting" || phase === "listening") {
+            setPhase("idle");
+            setVoiceStatus("Listening ended without a command. Try again or type it below.", "error");
+          }
+        };
+        listenButton.addEventListener("click", () => {
+          if (phase === "listening") {
+            setPhase("stopping");
+            setVoiceStatus("Stopping microphone…");
+            recognition.stop();
+            return;
+          }
+          if (phase !== "idle") return;
+          setPhase("starting");
+          setVoiceStatus("Starting microphone…");
+          try {
+            recognition.start();
+          } catch {
+            setPhase("idle");
+            setVoiceStatus("The microphone could not start. Check its permission and try again.", "error");
+          }
+        });
+      }
+
+      window.addEventListener("pagehide", () => {
+        if (recognition && phase === "listening") recognition.abort();
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      });
+    }
+
 
     async function checkBackend() {
       const dot = byId("backend-dot");
@@ -752,6 +954,7 @@
     byId("back-overview").addEventListener("click", () => showScreen("home", true));
     window.addEventListener("popstate", () => showScreen(location.hash.slice(1) || "home"));
     showScreen(location.hash.slice(1) || "home");
+    initVoiceAgent();
     checkBackend();
     loadMissions();
     searchMemories();

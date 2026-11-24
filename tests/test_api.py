@@ -64,6 +64,43 @@ def test_synapse_is_explicitly_simulated():
     ).status_code == 422
 
 
+def test_voice_commands_are_bounded_and_allowlisted():
+    navigation = client.post(
+        "/api/voice/command", json={"command": "Open the SynapseWeb screen!"}
+    )
+    assert navigation.status_code == 200
+    assert navigation.json()["action"] == {"type": "navigate", "screen": "synapse"}
+
+    search = client.post(
+        "/api/voice/command", json={"command": "Search notes for hackathon"}
+    ).json()
+    assert search["action"] == {
+        "type": "search_memory",
+        "screen": "rewind",
+        "query": "hackathon",
+    }
+
+    reminder = client.post(
+        "/api/voice/command", json={"command": "Trigger demo alert"}
+    ).json()
+    assert reminder["action"] == {
+        "type": "confirmation_required",
+        "screen": "butler",
+    }
+    unsafe = client.post(
+        "/api/voice/command", json={"command": "Book a ticket and pay"}
+    ).json()
+    assert unsafe["intent"] == "unknown"
+    assert unsafe["action"]["type"] == "none"
+
+    assert client.post(
+        "/api/voice/command", json={"command": "   "}
+    ).status_code == 422
+    assert client.post(
+        "/api/voice/command", json={"command": "x" * 251}
+    ).status_code == 422
+
+
 def test_ghostbutler_requires_confirmation_and_never_books():
     mission_id = client.get("/api/butler/missions").json()[0]["id"]
     path = "/api/butler/missions/trigger-demo"
@@ -127,6 +164,7 @@ if __name__ == "__main__":
         test_dashboard_and_health,
         test_smartpoint_uses_only_submitted_context,
         test_synapse_is_explicitly_simulated,
+        test_voice_commands_are_bounded_and_allowlisted,
         test_ghostbutler_requires_confirmation_and_never_books,
         test_rewind_has_empty_state_and_explicit_capture,
     ]
