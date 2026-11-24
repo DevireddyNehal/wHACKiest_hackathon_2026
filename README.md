@@ -142,3 +142,4 @@ wHACKiest_2026_hackathon/
 ## 👥 The Team — CodeRIT wHACKiest 2026
 * Built with passion for **wHACKiest 2026**, Ramaiah Institute of Technology, Bengaluru.
 * **Track:** 02 — *Beyond the Browser*
+# wHACKiest_hackathon_2026
