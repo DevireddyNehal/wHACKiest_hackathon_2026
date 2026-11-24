@@ -29,8 +29,12 @@ APP_ROOT = Path(__file__).resolve().parent.parent
 # Enable CORS for Chrome Extension and local frontends
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
-    allow_origin_regex=r"chrome-extension://[a-p]{32}",
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "https://whackiest-hackathon-2026.onrender.com",
+    ],
+    allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

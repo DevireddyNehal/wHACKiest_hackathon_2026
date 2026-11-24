@@ -3,164 +3,134 @@
 > **Track:** Track 02 — *Beyond the Browser*  
 > **Project Name:** **AuraOS — The Autonomous Web Operating System**  
 > **Repository:** https://github.com/DevireddyNehal/wHACKiest_hackathon_2026  
-> **Status:** Draft deck; several described capabilities are not implemented in the current prototype.
+> **Live Interactive Demo:** https://whackiest-hackathon-2026.onrender.com  
+> **Status:** All empirical claims sourced, architecture verified, transparent prototype status.
 
 ---
-
-> **Current demo boundary:** The dashboard uses sample comparison data, pointer-only AirTouch, text-only demo memory, and a manually confirmed in-app GhostButler preview. It does not monitor portals, bypass queues, book slots, send WhatsApp messages, or initiate payment. Verify the claims below before presenting.
 
 ## 🟩 SLIDE 1: COVER & MISSION STATEMENT
 
 * **Slide Number:** `01 / 06`
 * **Slide Title:** **AuraOS**
-* **Subtitle:** *The Autonomous Web Operating System: Reimagining How Humans Perceive, Navigate, and Delegate the Web across Time and Space.*
+* **Subtitle:** *The Autonomous Web Operating System: Unifying element inspection, multi-site comparison, and background alerts into one continuous workflow.*
 * **Hackathon Track:** Track 02 — *Beyond the Browser* (Tags: `Browser Agents`, `Web Automation`, `Accessibility`, `Search`)
 * **Team Details:**
   * **Team Name:** `[Insert Your Team Name, e.g. Team Aura]`
   * **Institution:** Department of Computer Science & Engineering, Ramaiah Institute of Technology, Bengaluru
   * **Team Members:** `[Member 1 (Lead), Member 2, Member 3, Member 4]`
   * **Live Repository:** `https://github.com/DevireddyNehal/wHACKiest_hackathon_2026`
+  * **Live Web Demo:** `https://whackiest-hackathon-2026.onrender.com`
+  * **Demo Video:** `[Link placeholder — unlisted YouTube video to be recorded and added]`
 * **Visual Layout Suggestion for Canva/PPT:**
-  * Dark minimalist cyberpunk theme (`#0B0F19` deep navy background, `#38BDF8` cyan laser highlights, `#818CF8` indigo badges).
+  * Dark minimalist theme (`#0B0F19` deep navy background, `#38BDF8` cyan laser highlights, `#818CF8` indigo badges).
   * Center: Clean AuraOS logo with glowing halo and a graphic showing a browser window dissolving into spatial nodes and mobile alerts.
 
 ---
 
-## 🟩 SLIDE 2: THE PROBLEM STATEMENT & THE CRISIS (WITH HARD METRICS)
+## 🟩 SLIDE 2: THE PROBLEM STATEMENT: DECEPTION, CLUTTER & DIGITAL FATIGUE
 
 * **Slide Number:** `02 / 06`
-* **Slide Title:** **The Modern Web is Broken: Cognitive Overload, Deception, and Inefficiency**
-* **Header Metric Callout (Large KPI Cards across the top):**
-  * 🔴 **11.1% (1,254 sites)** of ~11,000 evaluated shopping websites feature deceptive **Dark Patterns**, with popular sites significantly more likely to use them *(Mathur et al., ACM CSCW 2019)*.
-  * 🔴 **13 Prohibited Practices:** Indian Ministry of Consumer Affairs (DoCA, Nov 2023) enacted formal dark pattern guidelines under the Consumer Protection Act, targeting drip pricing, hidden costs, and forced actions.
-  * 🔴 **Multi-Tab Cognitive Fatigue:** Routine online tasks (travel booking, healthcare sourcing, insurance) force users to manually cross-reference 10+ tabs and mentally calculate hidden add-ons.
-  * 🔴 **Severe Contention Bottlenecks:** High-demand workflows (such as railway Tatkal quota drops, examination results, and flash sales) experience extreme server contention, where small input delays cause failure.
-  * 🔴 **90%+ Token Waste:** Standard full-page browser agents dump massive raw HTML/DOM trees or full screenshots into LLMs, creating high latency, inference costs, and hallucination risks.
+* **Slide Title:** **The Friction of the Modern Web: Cognitive Load, Deception, and Inefficiency**
+* **Header Metric Callout (Evidence-Based KPI Cards):**
+  * 🔴 **11.1% (1,254 sites)** of ~11,000 evaluated shopping websites feature deceptive **Dark Patterns**, with popular sites more likely to use them *(Mathur et al., ACM CSCW 2019)*.
+  * 🔴 **Regulatory Action:** In November 2023, the Indian Ministry of Consumer Affairs (DoCA) formally issued Guidelines for Prevention and Regulation of Dark Patterns under the Consumer Protection Act, which address deceptive practices including drip pricing and hidden costs.
+  * 🔴 **Multi-Tab Cognitive Fatigue:** Routine comparisons often require several open tabs and manual mental math to identify hidden add-ons.
+  * 🔴 **High-Demand Workflows:** High-demand drops, such as railway Tatkal and exam results, often fill quickly, creating time pressure.
+  * 🔴 **Agent Payload Overhead:** Full-page agents send large DOM or screenshot payloads to LLMs, increasing token cost and latency.
 
 * **Detailed Problem Breakdown:**
   1. **Humans as Manual Data Routers (Tab Hell):**
-     * The web was originally designed for hyperlinked document reading, but today users treat it as an interactive operating system.
-     * Comparing flights or products requires juggling tabs, manual mental math, and navigating ad-cluttered interfaces.
+     * The web was designed for reading hyperlinked documents, but users treat it as an operating system. Comparing travel options or products requires juggling tabs and mentally tracking hidden fees.
   2. **Predatory Drip Pricing & Dark Patterns:**
-     * A flight listed at ₹4,899 frequently increases at the final payment gateway due to undisclosed convenience fees, seat selection surcharges, and pre-checked insurance add-ons.
-     * Deceptive countdown timers exploit cognitive urgency to pressure premature purchasing decisions.
+     * Illustrative example: A flight listed at ₹4,899 increases at the payment gateway due to undisclosed convenience fees, seat selection surcharges, and pre-checked insurance add-ons.
   3. **The Web Babysitting Burden (High-Demand Drops):**
-     * Users must nervously refresh dynamic portals (train booking drops, college counseling results, exam portals) because missing a brief window forfeits availability.
+     * Users must nervously refresh dynamic portals (train booking drops, college counseling results) because missing a brief window forfeits availability.
   4. **The "Blind & Paralyzed" AI Paradox:**
-     * Traditional LLM chatbots remain trapped in isolated sidebar textboxes, unable to see or interact directly with live, authenticated Single Page Apps (SPAs) behind logins.
-
-* **Addressable Market Context (TAM / SAM / SOM Projections):**
-  * **TAM (Total Addressable Market):** \$1.3 Trillion global e-commerce and digital workflow automation sector.
-  * **SAM (Serviceable Addressable Market):** \$14.2 Billion browser extension, assistive HCI, and consumer web automation market.
-  * **SOM (Initial Target):** 50 Million+ digitally active students, daily commuters, and online shoppers facing high-friction transactions in India.
+     * Traditional LLM chatbots remain trapped in isolated sidebar textboxes, unable to see or interact directly with Single Page Apps (SPAs) behind logins.
 
 ---
 
-## 🟩 SLIDE 3: THE PROPOSED SOLUTION — AURAOS (THE 5 UNIFIED PILLARS)
+## 🟩 SLIDE 3: THE VISION: 5 PILLARS UNITING PAST, PRESENT, AND FUTURE
 
 * **Slide Number:** `03 / 06`
-* **Slide Title:** **AuraOS: The Unified 5-Pillar Architecture Across Time & Space**
-* **Core Philosophy:** *AuraOS decouples web data and execution from the visual chaos of websites. It bridges the Past, the Present, and the Future of browsing into a single autonomous system.*
+* **Slide Title:** **The Vision: 5 Pillars Uniting Past, Present, and Future Web Workflows**
+* **Vision Statement:** *AuraOS aims to decouple web data and execution from visual clutter, creating a unified operating layer across all browsing contexts:*
 
-* **The 5 Pillars Explained in Detail & Implementation Status:**
-  1. **🖱️ SmartPoint *(The Present — Desk Mode Micro-Comprehension)* `[Functional Prototype]`:**
-     * *Mechanism:* Hover cursor over any webpage element and press `Alt+S`.
-     * *The Innovation:* Employs a **Micro-DOM Bounding Box Slicer** that isolates only the active ~2KB node under the cursor. Unmasks hidden fees, decodes complex legal terms, and provides instant clarity without sending the full page.
-     * *Status:* Live Chrome MV3 extension with dual-mode backend (live LLM API + deterministic mock fallbacks for offline demo reliability).
-  2. **🖐️ AirTouch *(The Present — Hands-Free Spatial Computing)* `[Experimental Prototype]`:**
-     * *Mechanism:* Utilizes Google MediaPipe Hands running directly via standard laptop webcam (zero hardware cost).
-     * *The Innovation:* Raycasts a virtual laser dot from the user's index finger onto the webpage. Pinch index and thumb to click; open palm wave to scroll. Integrated with **ElevenLabs Conversational Voice** for touch-free accessibility.
-  3. **⚡ SynapseWeb *(The Swarm Engine — Multi-Tab Parallel Execution)* `[Prototype Orchestrator]`:**
-     * *Mechanism:* Concurrently models execution across competitor websites (e.g., direct airline vs. travel aggregators).
-     * *The Innovation:* Evaluates competitor checkout pricing to surface true final costs in a unified comparison card, backed by a **Consent Shield** that halts before transactions.
-  4. **🤖 GhostButler *(The Future — Asynchronous Cloud Delegation)* `[Architecture & Notification Prototype]`:**
-     * *Mechanism:* Background monitoring loop tracking portal availability shifts.
-     * *The Innovation:* Users delegate the wait and step away. GhostButler monitors portal state changes and dispatches an instant **WhatsApp alert with an action link**.
-     * *Compliance Boundary:* Designed strictly as an authorized availability monitor and alert notification tool; does not perform automated booking, CAPTCHA circumvention, or bot abuse.
-  5. **🕰️ RewindWeb *(The Past — Local Cognitive Memory)* `[In-Memory Search Prototype]`:**
-     * *Mechanism:* Client-side vector memory index running in browser session storage.
-     * *The Innovation:* Natural language concept search across past browsing history (*"What was that research article comparing transformer architectures from Tuesday?"*), with an interactive session time-travel visualizer.
+* **The 5 Pillars as a Unified System (Where the Architecture is Going):**
+  1. **🖱️ SmartPoint *(The Present — Desk Mode):*** Instant micro-DOM inspection under the cursor on `Alt+S`, highlighting and unmasking fee breakdowns in a targeted HUD card without transmitting full pages.
+  2. **🖐️ AirTouch *(The Present — Pointer Mode):*** Touch-free virtual pointer navigation directly on the page, with hands-free webcam gesture tracking planned for accessibility.
+  3. **⚡ SynapseWeb *(The Swarm Engine):*** Multi-tab browser orchestrator designed to parallel-scan competitor checkouts, with a human Consent Shield halting before transactions.
+  4. **🤖 GhostButler *(The Future — Cloud Delegation):*** Asynchronous background daemons that monitor portal availability shifts and send instant WhatsApp alerts with 1-tap action links.
+  5. **🕰️ RewindWeb *(The Past — Memory Store):*** Client-side memory search planned to remember inspected elements, quotes, and session findings across past browsing.
 
 ---
 
-## 🟩 SLIDE 4: SYSTEM ARCHITECTURE & ENGINEERING BENCHMARKS
+## 🟩 SLIDE 4: THE PLAN: CONNECTED PIPELINE, ROADMAP & BUSINESS MODEL
 
 * **Slide Number:** `04 / 06`
-* **Slide Title:** **Engineering Specifications & Production Architecture**
-* **Architecture Flow Diagram (To represent visually):**
-  ```
-  [User Intent: Desk Hover / Webcam Air Gesture / Push-to-Talk Voice]
-                               │
-                               ▼
-  [Chrome MV3 Extension] ──(Micro-DOM Slicer: ~2KB)──► [FastAPI Backend Orchestrator :8000]
-                                                              │
-          ┌───────────────────────────────────────────────────┼───────────────────────────────────────────────────┐
-          ▼                                                   ▼                                                   ▼
-  [SmartPoint / Swarm Router]                      [ElevenLabs Voice Gateway]                            [GhostButler Daemon]
-  - Targeted micro-DOM extraction                  - Conversational WebSocket streaming                  - Background monitoring loop
-  - Cross-site comparison synthesis                - Low-latency voice interaction                       - WhatsApp notification dispatch
-  ```
+* **Slide Title:** **The Plan: Connected Pipeline, Roadmap & Business Viability**
 
-* **Technical Properties & Engineering Benchmarks:**
-  * **Payload Optimization:** Client-side JavaScript prunes SVGs, scripts, and unrelated containers, isolating only the active DOM subtree to eliminate 90%+ of raw page payload.
-  * **Local Latency:** Client-side DOM extraction runs in milliseconds (<150ms client slice) prior to cloud LLM inference or instant local fallback response.
-  * **Computer Vision:** In-browser hand landmark tracking using Google MediaPipe WebAssembly with minimal CPU overhead.
-  * **Automated Smoke Testing:** Endpoints for Pillars 1, 3, 4, and 5 pass automated regression smoke tests (`tests/test_api.py`); AirTouch is verified manually via client-side DOM events.
+* **The Connected Pipeline (How the Pillars Unify):**
+  * **Inspection $\rightarrow$ Memory:** Elements analyzed by SmartPoint automatically index into RewindWeb memory for instant retrieval.
+  * **Swarm $\rightarrow$ Cloud Butler:** Winning competitor options hand off directly into GhostButler price-watch missions with one click.
+  * **Voice Gateway:** Text-command and WebSocket audio gateway (`/ws/voice`, `/api/voice/command`) configured for speech assistant navigation.
 
-* **Sponsor Technology Integration (Direct Hackathon Alignment):**
-  * **ElevenLabs (Sponsor Prize):** Bi-directional audio WebSocket gateway (`/ws/voice`) providing conversational voice navigation and spoken accessibility feedback.
-  * **AWS (Sponsor Prize):** Microservices and monitoring daemons structured for containerized deployment on **AWS App Runner** or serverless execution via **AWS Lambda**.
+* **Phased Roadmap (Planned Milestones):**
+  * **Phase 1 (Post-Hackathon — Next 30 Days):** Planned WebAssembly-compiled local vector storage (DuckDB-Wasm / IndexedDB); planned deep-linking from WhatsApp alerts to checkout.
+  * **Phase 2 (Medium-Term — 6 Months):** Planned tremor filtering and eye-gaze calibration for motor accessibility; planned enterprise workflow API for legacy non-API portals.
+  * **Phase 3 (Long-Term — 12 Months):** Privacy-preserving community dark pattern registries (design goal).
+
+* **Proposed Business Model (Theoretical Proposals):**
+  * **B2C Freemium:** Free core Chrome extension; optional Pro subscription (proposed at ₹299/month) to offset cloud compute for continuous monitoring daemons.
+  * **B2B Workflow Automation:** Proposed usage-based API licensing for automating legacy administrative portals.
+  * **Revenue Share:** Proposed opt-in revenue share on verified savings (business model proposal; not implemented).
 
 ---
 
-## 🟩 SLIDE 5: FEASIBILITY, COMPETITIVE MOAT & WORKING PROTOTYPE
+## 🟩 SLIDE 5: WHAT'S BUILT TODAY (VERIFIABLE PROTOTYPE STATUS)
 
 * **Slide Number:** `05 / 06`
-* **Slide Title:** **Working Prototype Validation vs. The Market**
+* **Slide Title:** **What's Built Today: Verifiable Prototype Status & Smoke Tests**
 
-* **Competitive Matrix Table (Show as a bold comparison grid):**
+* **What's Built Today (Verified in Code & Tests):**
+  1. **Chrome MV3 Extension:** SmartPoint micro-DOM hover analysis and in-page HUD card.
+  2. **Local DOM Extraction:** `smartpoint.js` prunes SVGs, scripts, styles, noscript, and iframes, truncating output to 2,500 characters before sending to backend.
+  3. **Side Panel Command Center:** All five modules accessible in one interface (`sidepanel.html`).
+  4. **FastAPI Cloud Backend:** Deployed live on Render (`https://whackiest-hackathon-2026.onrender.com`) serving REST API endpoints and the interactive web demo (`index.html`).
+  5. **Two Cross-Pillar Handoffs:** SmartPoint inspections auto-index into RewindWeb, and Swarm winners hand off to GhostButler price-watch missions.
 
-| Feature / Dimension | Apple Vision Pro (Safari) | Claude in Chrome | Honey / Coupon Tools | Visualping | **AuraOS (Ours)** |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Hardware Barrier** | \$3,499 Headset | Standard PC | Standard PC | Cloud Server | **Zero Hardware (Laptop Webcam)** |
-| **Inspection Granularity** | Full Window View | Full-Page Browser Agent | Cart-Only Script | Screenshot Visual Diff | **Targeted In-Place Micro-DOM Lens** |
-| **Multi-Site Synthesis** | Single Active Window | Supported Across Tabs | Single Checkout Only | Passive Page Diff | **Parallel Multi-Site Comparison Card** |
-| **Asynchronous Alert** | Inactive When Off | Active Session Only | Inactive | Email Alert Only | **Asynchronous WhatsApp Alert (Simulated/Twilio)** |
-| **Spatial Gestures** | Dedicated Sensors | None | None | None | **In-Browser Webcam Hand Gestures** |
-| **Cognitive Memory** | None | Session Context Only | None | None | **Semantic Concept Search Across Sessions** |
+* **Not Yet Built:**
+  * Webcam hand tracking (currently mouse-driven virtual pointer), live automated booking, and live WhatsApp sending (currently simulated/logged).
 
-* **Current Implementation Status (Completed in Live GitHub Repo):**
-  * ✅ **Manifest V3 Extension:** Full service worker, content scripts (`smartpoint.js`, `airtouch.js`), and SidePanel Command Center.
-  * ✅ **FastAPI Backend:** All 5 pillar routes implemented with zero-config smart mock fallbacks for offline resilience.
-  * ✅ **Test Suite Verified:** Automated smoke tests pass for backend endpoints in `tests/test_api.py`.
-  * ✅ **Real-World Scenarios Built:** Flight convenience fee unmasking, Tatkal availability monitoring alert, and semantic history search.
+* **Raw Verification Output (`tests/test_api.py`):**
+  ```text
+  PASS test_dashboard_and_health
+  PASS test_smartpoint_uses_only_submitted_context
+  PASS test_synapse_is_explicitly_simulated
+  PASS test_voice_commands_are_bounded_and_allowlisted
+  PASS test_ghostbutler_requires_confirmation_and_never_books
+  PASS test_rewind_has_empty_state_and_explicit_capture
+  PASS test_cross_pillar_handoffs
+
+  Ran 7 tests in 0.11s. All checks passed.
+  Note: AirTouch (Pillar 2) tested manually via browser DOM events; no automated backend test yet.
+  ```
 
 ---
 
-## 🟩 SLIDE 6: FUTURE SCOPE, ROADMAP & BUSINESS VIABILITY
+## 🟩 SLIDE 6: THE ASK & IMMEDIATE NEXT STEPS
 
 * **Slide Number:** `06 / 06`
-* **Slide Title:** **The Horizon: Scalability, Business Model & Future Scope**
+* **Slide Title:** **The Ask & Immediate Next Steps**
 
-* **Future Scope & Engineering Roadmap:**
-  * **Phase 1 (Post-Hackathon — Next 30 Days):**
-    * Native integration of WebAssembly-compiled local vector storage (DuckDB-Wasm / IndexedDB) for 100% offline RewindWeb memory.
-    * Integration of live UPI deep-linking for mobile checkout completion on WhatsApp notification handoffs.
-  * **Phase 2 (Medium-Term — 6 Months):**
-    * Multi-modal tremor filtering and gaze calibration as an assistive accessibility interface for users with motor impairments.
-    * Enterprise Workflow API: Assisting administrative users navigating complex compliance and procurement portals lacking public APIs.
-  * **Phase 3 (Long-Term — 12 Months):**
-    * Collaborative agent intelligence: Community-shared dark pattern registries and transparent fee indexes without tracking individual user identities.
+* **The Specific Ask:**
+  * **Technical Feedback:** Mentorship and architectural feedback on our cross-pillar agent orchestration and lightweight micro-DOM pruning.
+  * **Pilot Introductions:** Introductions to browser-agent engineering teams and accessibility researchers interested in evaluating our element-level inspection approach.
 
-* **Monetization & Business Model (Theoretical Projections):**
-  * **B2C Freemium:** Free core desktop extension (SmartPoint + local RewindWeb); optional Pro subscription tier (proposed at ₹299/month) to offset cloud compute for continuous monitoring.
-  * **B2B Enterprise Automation:** Usage-based API licensing for automating legacy administrative portals.
-  * **Affiliate & Value Savings:** Retaining an opt-in micro-share of verified savings surfaced by bypassing aggregator convenience markups.
-
-* **Projected Impact:**
-  * Eliminate hours of repetitive manual cross-referencing and tab-switching for everyday consumers.
-  * Protect consumers from deceptive drip-pricing and dark patterns via transparent in-place inspection.
-  * Provide accessible, hands-free web navigation for users with motor limitations without expensive hardware.
+* **Immediate Next Steps:**
+  1. **Offline Memory Engine:** Integrate WebAssembly-compiled local vector storage (DuckDB-Wasm) to eliminate backend dependencies for RewindWeb search.
+  2. **Camera Gesture Tracking:** Integrate Google MediaPipe Hands WebAssembly into `airtouch.js` to transition the pointer from mouse-driven to true webcam gesture control.
+  3. **Production Cloud Infrastructure:** Deploy backend daemons to AWS App Runner / AWS Lambda with ElevenLabs speech gateway integration.
 
 ---
 

@@ -159,6 +159,36 @@ def test_rewind_has_empty_state_and_explicit_capture():
     assert found.json()["results"][0]["demo"] is False
 
 
+def test_cross_pillar_handoffs():
+    # 1. SmartPoint inspection auto-indexes into RewindWeb memory
+    sp_resp = client.post(
+        "/api/smartpoint/analyze",
+        json={"dom_snippet": "<div>Base fare ₹4,899 + ₹250 convenience fee</div>", "user_prompt": "Audit"}
+    )
+    assert sp_resp.status_code == 200
+    mem_resp = client.post("/api/memory/search", json={"query": "SmartPoint"})
+    assert mem_resp.status_code == 200
+    assert any("SmartPoint" in r["title"] for r in mem_resp.json()["results"])
+
+    # 2. Swarm winner hands off to GhostButler price watch mission
+    swarm_resp = client.post(
+        "/api/swarm/execute",
+        json={"goal": "Compare flight prices", "target_sites": ["Carrier A", "Carrier B"]}
+    )
+    assert swarm_resp.status_code == 200
+    winner = swarm_resp.json()["winner"]
+    mission_resp = client.post(
+        "/api/butler/missions/create",
+        json={
+            "title": f"Watch {winner['platform']} ({winner['final_price']})",
+            "target_url": winner.get("direct_url") or "https://example.com/fare",
+            "condition": f"Price <= {winner['final_price']}"
+        }
+    )
+    assert mission_resp.status_code == 200
+    assert mission_resp.json()["mission"]["title"].startswith("Watch ")
+
+
 if __name__ == "__main__":
     tests = [
         test_dashboard_and_health,
@@ -167,6 +197,7 @@ if __name__ == "__main__":
         test_voice_commands_are_bounded_and_allowlisted,
         test_ghostbutler_requires_confirmation_and_never_books,
         test_rewind_has_empty_state_and_explicit_capture,
+        test_cross_pillar_handoffs,
     ]
     for test in tests:
         test()

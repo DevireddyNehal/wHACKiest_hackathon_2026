@@ -3,7 +3,7 @@
  * Orchestrates communication between Content Scripts, SidePanel, and Backend.
  */
 
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL = "https://whackiest-hackathon-2026.onrender.com";
 
 // Open Side Panel on Extension icon click
 chrome.sidePanel

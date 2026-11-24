@@ -55,4 +55,20 @@ async def analyze_element(req: SmartPointRequest):
         speech_text = f"{result['title']}. {result['summary']}"
         await voice_service.generate_speech_stream(speech_text)
 
+    # Cross-Pillar Handoff: Auto-index inspection into RewindWeb memory
+    try:
+        from backend.routers.rewind_memory import MEMORY_INDEX
+        import datetime
+        MEMORY_INDEX.append({
+            "id": f"mem_sp_{len(MEMORY_INDEX) + 1}",
+            "url": req.url or "https://current-page.example.com",
+            "title": f"SmartPoint: {result.get('title', 'Element Inspection')}",
+            "snippet": result.get("summary", "")[:250],
+            "timestamp": "Just now",
+            "category": "SmartPoint Audit",
+            "demo": False,
+        })
+    except Exception:
+        pass
+
     return result
