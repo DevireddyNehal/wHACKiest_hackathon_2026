@@ -1,0 +1,406 @@
+/* ==========================================================================
+   AuraOS SidePanel Command Center Styles
+   Sleek Dark Cyberpunk / Modern Minimalist Aesthetic
+   ========================================================================== */
+
+:root {
+  --bg-main: #0b0f19;
+  --bg-card: #151d2e;
+  --bg-hover: #1e293b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #6366f1;
+  --text-main: #f8fafc;
+  --text-dim: #94a3b8;
+  --accent-primary: #6366f1;
+  --accent-cyan: #38bdf8;
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.5;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+}
+
+/* Header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logo-aura {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-size: 18px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-os {
+  font-weight: 900;
+  font-size: 18px;
+  color: #f8fafc;
+}
+
+.hackathon-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.live {
+  background: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green);
+}
+
+.status-dot.dead {
+  background: var(--accent-red);
+}
+
+/* Mode Switcher */
+.mode-switch-pill {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.mode-caption {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+.mode-caption code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+}
+
+/* Voice Bar */
+.voice-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 6px;
+  gap: 6px;
+}
+
+.voice-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 12px;
+  outline: none;
+}
+
+.mic-btn, .send-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.mic-btn:hover, .send-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mic-btn.listening {
+  background: var(--accent-red);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+.voice-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+/* Module Cards */
+.modules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.card-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.action-btn {
+  width: 100%;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+}
+
+.action-btn:hover {
+  filter: brightness(1.15);
+}
+
+/* Swarm Result */
+.swarm-results {
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+
+.winner-box {
+  border-left: 3px solid var(--accent-green);
+  padding-left: 8px;
+  margin-bottom: 8px;
+}
+
+.winner-box strong {
+  color: var(--accent-green);
+  display: block;
+}
+
+.matrix-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 3px 0;
+  color: var(--text-dim);
+}
+
+.matrix-row.best {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.consent-pill {
+  margin-top: 8px;
+  font-size: 10px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* GhostButler Mission Pill */
+.mission-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #4ade80;
+  margin-bottom: 10px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.whatsapp-bubble {
+  margin-top: 10px;
+  background: #064e3b;
+  border: 1px solid #059669;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.wa-header {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a7f3d0;
+  margin-bottom: 4px;
+}
+
+.wa-body {
+  font-size: 11px;
+  white-space: pre-wrap;
+  color: #ecfdf5;
+}
+
+/* Rewind Memory */
+.search-bar input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-main);
+  outline: none;
+  margin-bottom: 8px;
+}
+
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.memory-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.mem-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+
+.mem-title {
+  display: block;
+  font-size: 11px;
+  color: #ffffff;
+  margin: 2px 0;
+}
+
+.mem-snippet {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.mem-time {
+  display: block;
+  font-size: 9px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Footer */
+.panel-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #64748b;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1116">
+  <meta name="description" content="GazeVoice — hands-free browsing prototype. Voice says what, gaze says which.">
+  <title>GazeVoice — Hands-free browsing</title>
+  <style>
+    :root{--bg:#0e1116;--panel:#161b23;--panel2:#1b222d;--line:#2a3340;--txt:#e8eef6;--dim:#93a1b3;--ok:#3ddc84;--warn:#ffcc4d;--bad:#ff5d5d;--ac:#6ea8fe}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif}
+    a{color:var(--ac)}button,input{font:inherit}
+    .skip{position:absolute;left:-9999px;top:0;background:var(--ac);color:#000;padding:8px 14px;z-index:99}.skip:focus{left:0}
+    :focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+    code,kbd{background:#0c1016;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+    .wrap{max-width:1080px;margin:auto;padding:0 22px}.band{padding:52px 0;border-top:1px solid var(--line)}
+    .kicker{color:var(--ac);text-transform:uppercase;letter-spacing:.14em;font-size:12px}
+    h1{font-size:clamp(38px,7vw,72px);line-height:1.02;margin:.2em 0 .3em;letter-spacing:-.02em}h1 em{color:var(--ok);font-style:normal}
+    h2{font-size:28px;margin:0 0 14px}.lede{font-size:19px;color:#c6d2e0;max-width:60ch}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}.cols p{margin:0;color:#c6d2e0}
+    .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.grid3>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.grid3 h3{margin:0 0 6px}.grid3 p{margin:0;color:var(--dim);font-size:14px}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(14,17,22,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    .topbar .wrap{align-items:center;display:flex;height:62px;justify-content:space-between}
+    .brand{color:var(--txt);font-weight:800;text-decoration:none}.brand em{color:var(--ok);font-style:normal}
+    .status{align-items:center;display:flex;font-size:13px;gap:8px}.dot{background:var(--dim);border-radius:50%;height:9px;width:9px}
+    .dot.live{background:var(--ok);box-shadow:0 0 12px rgba(61,220,132,.55)}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+    .button{background:var(--ac);border:1px solid var(--ac);border-radius:8px;color:#09111d;cursor:pointer;font-weight:750;padding:11px 15px}.button.secondary{background:transparent;color:var(--txt);border-color:var(--line)}.button.danger{background:var(--bad);border-color:var(--bad);color:#170000}
+    .demo{display:grid;gap:16px;grid-template-columns:minmax(260px,1fr) minmax(260px,.72fr)}
+    .stage{background:#0a0d12;border:1px solid var(--line);border-radius:14px;height:390px;overflow:hidden;position:relative}
+    .stage-head{align-items:center;display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+    .stage-grid{display:grid;gap:10px;grid-template-columns:1fr 1fr;padding:14px}
+    .target{background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--txt);cursor:pointer;height:92px;text-align:left;padding:13px}.target:hover,.target.hovered{border-color:var(--ac);background:var(--panel2)}.target strong{display:block}.target small{color:var(--dim)}
+    .gaze{background:var(--ok);border:3px solid #fff;border-radius:50%;box-shadow:0 0 18px var(--ok);height:22px;position:absolute;transform:translate(-50%,-50%);width:22px;z-index:5;pointer-events:none}
+    .sidecard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+    video{background:#05070a;border-radius:10px;display:block;height:210px;object-fit:cover;width:100%}.camera-off{align-items:center;background:#05070a;border-radius:10px;color:var(--dim);display:flex;height:210px;justify-content:center;text-align:center}
+    .transcript{background:#0b0e13;border:1px solid var(--line);border-radius:8px;color:#c7d3e2;margin-top:12px;min-height:64px;padding:10px}.transcript b{color:var(--ok)}
+    .pipe{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:0;margin:22px 0}.pipe li{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.pipe span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ac);color:#08111f;font-weight:700;font-size:13px}.pipe h3{margin:8px 0 4px}.pipe p{margin:0;font-size:14px;color:var(--dim)}
+    .cmds{width:100%;border-collapse:collapse;margin:20px 0 0;font-size:14px}.cmds th,.cmds td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}.cmds th{color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.08em}.cmds td:first-child{color:var(--ok);white-space:nowrap}
+    .tick{list-style:none;padding:0;margin:0}.tick li{padding-left:26px;position:relative;margin-bottom:10px}.tick li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
+    .note{color:var(--dim);font-size:14px;border-left:3px solid var(--warn);padding-left:12px}
+    .toast{background:#101722;border:1px solid var(--line);border-radius:8px;bottom:18px;box-shadow:0 12px 40px #0007;left:50%;padding:10px 14px;position:fixed;transform:translate(-50%,120px);transition:.25s;z-index:50}.toast.show{transform:translate(-50%,0)}
+    .voice-box{background:#0b0e13;border:1px solid var(--line);border-radius:10px;margin-top:12px;padding:10px}.voice-line{align-items:center;display:flex;gap:8px}.voice-line input{background:#121923;border:1px solid var(--line);border-radius:7px;color:var(--txt);min-width:0;padding:8px 9px;width:100%}.voice-line button{flex:0 0 auto;padding:8px 10px}.voice-meta{align-items:center;color:var(--dim);display:flex;font-size:11px;justify-content:space-between;margin-top:7px}.confidence{color:var(--ok)}.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.command-chip{background:#111923;border:1px solid var(--line);border-radius:16px;color:#b8c6d6;cursor:pointer;font-size:11px;padding:5px 8px}.command-chip:hover{border-color:var(--ac);color:var(--txt)}.history{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}.history strong{display:block;font-size:11px;margin-bottom:5px}.history-list{list-style:none;margin:0;max-height:90px;overflow:auto;padding:0}.history-list li{color:var(--dim);font-size:11px;padding:3px 0}.history-list li span{color:var(--ok);margin-right:6px}.mic-live{animation:pulse 1.2s infinite}.mic-live::before{content:"";display:inline-block;background:var(--bad);border-radius:50%;height:7px;margin-right:6px;width:7px}@keyframes pulse{50%{opacity:.55}}
+    .mic-test{width:100%;margin-top:8px}.diagnostic{color:var(--dim);font-size:11px;line-height:1.45;margin:8px 0 0}.diagnostic.good{color:var(--ok)}.diagnostic.bad{color:#ff9a9a}
+    @media(max-width:780px){.cols,.demo{grid-template-columns:1fr}.stage{height:350px}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <nav class="topbar" aria-label="Main navigation">
+    <div class="wrap"><a class="brand" href="#top">Gaze<em>Voice</em></a><div class="status"><span class="dot" id="status-dot"></span><span id="status-text">Prototype ready</span></div></div>
+  </nav>
+  <main id="main">
+    <header class="band" id="top">
+      <div class="wrap">
+        <div class="kicker">Hands-free browser prototype</div>
+        <h1>Eyes choose.<br><em>Voice acts.</em></h1>
+        <p class="lede">GazeVoice combines gaze-target selection with spoken commands for a simple, accessible browsing experience.</p>
+        <div class="hero-actions">
+          <button class="button" id="start-all" type="button">Start prototype</button>
+          <button class="button secondary" id="enable-camera" type="button">Enable camera preview</button>
+          <a class="button secondary" href="#try">Try the demo</a>
+          <a class="button secondary" href="/download/source" download="gazevoice-source.zip">Download source</a>
+        </div>
+      </div>
+    </header>
+    <section class="band" id="try">
+      <div class="wrap">
+        <div class="kicker">Interactive preview</div>
+        <h2>Try gaze + voice</h2>
+        <p class="note">This prototype uses your mouse or pointer as a gaze stand-in. Camera preview is visual only; it does not perform real eye tracking or send images anywhere.</p>
+        <div class="demo">
+          <div class="stage" id="stage">
+            <div class="stage-head"><strong>Example page</strong><span id="selected-target">No target selected</span></div>
+            <div class="stage-grid">
+              <button class="target" data-label="News"><strong>News</strong><small>Open today’s articles</small></button>
+              <button class="target" data-label="Messages"><strong>Messages</strong><small>Read notifications</small></button>
+              <button class="target" data-label="Weather"><strong>Weather</strong><small>View local forecast</small></button>
+              <button class="target" data-label="Settings"><strong>Settings</strong><small>Change preferences</small></button>
+            </div>
+            <div class="gaze" id="gaze" style="left:50%;top:55%"></div>
+          </div>
+          <aside class="sidecard">
+            <video id="camera" autoplay playsinline muted hidden></video>
+            <div class="camera-off" id="camera-off">Camera preview off</div>
+            <div class="hero-actions">
+              <button class="button" id="listen" type="button">Start voice</button>
+              <button class="button secondary" id="stop-listen" type="button" disabled>Stop</button>
+            </div>
+            <div class="transcript"><span id="mic-indicator">Voice status:</span> <b id="voice-status">idle</b><br><span id="heard">Say “open News”, “scroll down”, or “go back”.</span></div>
+            <div class="voice-box">
+              <button class="button secondary mic-test" id="mic-test" type="button">Test microphone access</button>
+              <p class="diagnostic" id="mic-diagnostic">Mic check not run.</p>
+              <div class="voice-line"><input id="text-command" aria-label="Type a voice command" placeholder="Type a command to test"><button class="button" id="run-command" type="button">Run</button></div>
+              <div class="voice-meta"><span id="confidence">Recognition: ready</span><span id="command-count">0 commands</span></div>
+              <div class="chip-row" aria-label="Quick commands"><button class="command-chip" type="button" data-command="open News">Open News</button><button class="command-chip" type="button" data-command="open Messages">Open Messages</button><button class="command-chip" type="button" data-command="open Weather">Open Weather</button><button class="command-chip" type="button" data-command="scroll down">Scroll down</button><button class="command-chip" type="button" data-command="go top">Go top</button></div>
+              <div class="history"><strong>Recent commands</strong><ul class="history-list" id="history-list"><li>No commands yet</li></ul></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+    <section class="band">
+      <div class="wrap">
+        <div class="kicker">How it works</div><h2>Three parts, one interaction</h2>
+        <ol class="pipe">
+          <li><span>1</span><h3>Gaze</h3><p>Identifies the likely target. The demo uses pointer movement as a stand-in.</p></li>
+          <li><span>2</span><h3>Voice</h3><p>Says what to do, such as open, scroll, select, or go back.</p></li>
+          <li><span>3</span><h3>Confirmation</h3><p>Confirms the selected target visually and with text before acting.</p></li>
+        </ol>
+      </div>
+    </section>
+    <section class="band">
+      <div class="wrap cols">
+        <div><div class="kicker">Supported in this demo</div><h2>Working controls</h2><ul class="tick"><li>Pointer/gaze stand-in</li><li>Target hover and dwell</li><li>Browser speech recognition</li><li>Scroll and back commands</li><li>Camera preview via browser permission</li></ul></div>
+        <div><div class="kicker">Prototype limits</div><h2>What it cannot do yet</h2><ul class="tick"><li>No calibrated real eye tracking</li><li>No guaranteed speech recognition support</li><li>No browser-wide control outside this page</li><li>No remote monitoring or cloud upload</li><li>No medical, safety, or emergency use</li></ul></div>
+      </div>
+    </section>
+    <section class="band">
+      <div class="wrap">
+        <div class="kicker">Voice commands</div><h2>Try these phrases</h2>
+        <table class="cmds"><thead><tr><th>Phrase</th><th>Action</th></tr></thead><tbody>
+          <tr><td>Open / Select News</td><td>Select and open the News target</td></tr><tr><td>Open / Select Settings</td><td>Select and open Settings</td></tr><tr><td>Scroll down / Page down</td><td>Move the page downward</td></tr><tr><td>Scroll up / Page up</td><td>Move the page upward</td></tr><tr><td>Go top</td><td>Move to the top of the page</td></tr><tr><td>Go back</td><td>Use browser history</td></tr><tr><td>Stop listening</td><td>Stop speech recognition</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const stage = $("stage"), gaze = $("gaze"), targets = [...document.querySelectorAll(".target")];
+    let recognition = null, listening = false, hoverTarget = null, dwellTimer = null, dwellEnabled = true, commandCount = 0;
+    let localStream=null, localContext=null, localProcessor=null, localSocket=null;
+    function toast(message){const node=$("toast");node.textContent=message;node.classList.add("show");clearTimeout(node.hideTimer);node.hideTimer=setTimeout(()=>node.classList.remove("show"),2200);}
+    function setLive(live){$("status-dot").classList.toggle("live",live);$("status-text").textContent=live?"Voice listening":"Prototype ready";$("mic-indicator").classList.toggle("mic-live",live);}
+    function selectTarget(target){if(!target)return;targets.forEach(item=>item.classList.remove("hovered"));target.classList.add("hovered");$("selected-target").textContent="Selected: "+target.dataset.label;toast(target.dataset.label+" selected");}
+    function openTarget(label){const target=targets.find(item=>item.dataset.label.toLowerCase()===label.toLowerCase());if(!target){toast("Target not found");return;}selectTarget(target);target.animate([{transform:"scale(1)"},{transform:"scale(.96)"},{transform:"scale(1)"}],{duration:280});toast(label+" opened in demo");}
+    stage.addEventListener("mousemove",(event)=>{const rect=stage.getBoundingClientRect();gaze.style.left=(event.clientX-rect.left)+"px";gaze.style.top=(event.clientY-rect.top)+"px";});
+    targets.forEach((target)=>{target.addEventListener("mouseenter",()=>{hoverTarget=target;targets.forEach(item=>item.classList.remove("hovered"));target.classList.add("hovered");$("selected-target").textContent="Gaze target: "+target.dataset.label;if(dwellEnabled){clearTimeout(dwellTimer);dwellTimer=setTimeout(()=>selectTarget(target),900)}});target.addEventListener("mouseleave",()=>{clearTimeout(dwellTimer);hoverTarget=null});target.addEventListener("click",()=>openTarget(target.dataset.label));});
+    async function enableCamera(){try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});$("camera").srcObject=stream;$("camera").hidden=false;$("camera-off").hidden=true;$("enable-camera").textContent="Camera enabled";toast("Camera preview enabled");}catch(error){toast("Camera unavailable: "+error.name);}}
+    $("enable-camera").addEventListener("click",enableCamera);
+    function initSpeech(){return {type:"local-vosk"};}
+    function resampleTo16k(input,sampleRate){if(sampleRate===16000)return input;const ratio=sampleRate/16000,outputLength=Math.round(input.length/ratio),output=new Float32Array(outputLength);let offsetResult=0,offsetBuffer=0;while(offsetResult<outputLength){const nextOffset=Math.round((offsetResult+1)*ratio);let sum=0,count=0;for(let i=offsetBuffer;i<nextOffset&&i<input.length;i++){sum+=input[i];count++}output[offsetResult]=count?sum/count:0;offsetResult++;offsetBuffer=nextOffset}return output}
+    function floatToPcm16(float32){const pcm=new ArrayBuffer(float32.length*2),view=new DataView(pcm);for(let i=0;i<float32.length;i++){const value=Math.max(-1,Math.min(1,float32[i])),sample=value<0?value*0x8000:value*0x7fff;view.setInt16(i*2,sample,true)}return pcm}
+    function addHistory(command,success){commandCount++;$("command-count").textContent=commandCount+" command"+(commandCount===1?"":"s");const list=$("history-list");if(commandCount===1)list.replaceChildren();const item=document.createElement("li");item.innerHTML="<span>"+(success?"✓":"?")+"</span>"+command.replaceAll("<","&lt;").replaceAll(">","&gt;");list.prepend(item);}
+    function runCommand(command,fromVoice=false){const clean=command.toLowerCase().replace(/[.!?]+$/,"").trim();$("heard").textContent=(fromVoice?"Heard: ":"Testing: ")+"“"+clean+"”";let success=true;if(clean.includes("stop listening")||clean==="stop"){stopListening();addHistory(clean,true);return;}if(clean.includes("go back")||clean.includes("previous page")){history.length>1?history.back():toast("Nothing earlier in browser history");addHistory(clean,history.length>1);return;}if(clean.includes("go top")||clean==="top"){window.scrollTo({top:0,behavior:"smooth"});toast("Moved to top");addHistory(clean,true);return;}if(clean.includes("scroll down")||clean.includes("page down")){window.scrollBy({top:420,behavior:"smooth"});toast("Scrolled down");addHistory(clean,true);return;}if(clean.includes("scroll up")||clean.includes("page up")){window.scrollBy({top:-420,behavior:"smooth"});toast("Scrolled up");addHistory(clean,true);return;}if(clean.includes("open")||clean.includes("select")){const match=targets.find(target=>clean.includes(target.dataset.label.toLowerCase()));if(match){openTarget(match.dataset.label);addHistory(clean,true);return;}success=false;}else if(clean==="help"||clean.includes("show commands")){document.querySelector(".cmds").scrollIntoView({behavior:"smooth"});toast("Voice commands shown");addHistory(clean,true);return;}else{const match=targets.find(target=>clean.includes(target.dataset.label.toLowerCase()));if(match){openTarget(match.dataset.label);addHistory(clean,true);return;}success=false;}addHistory(clean,false);toast(success?"Command complete":"Command not recognised — try “open News”");}
+    async function startListening(){
+      if(listening)return;
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("heard").textContent="Microphone API unavailable.";return;}
+      try{
+        const status=await fetch("/api/speech-status").then((response)=>response.json());
+        if(!status.available){$("voice-status").textContent="unavailable";$("heard").textContent="Local speech model is not installed.";return;}
+        localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1},video:false});
+        localContext=new (window.AudioContext||window.webkitAudioContext)();
+        await localContext.resume();
+        const source=localContext.createMediaStreamSource(localStream);
+        localProcessor=localContext.createScriptProcessor(4096,1,1);
+        const wsProtocol=location.protocol==="https:"?"wss":"ws";
+        localSocket=new WebSocket(wsProtocol+"://"+location.host+"/ws/speech");
+        localSocket.binaryType="arraybuffer";
+        localSocket.onopen=()=>{
+          listening=true;recognition=initSpeech();
+          $("listen").disabled=true;$("stop-listen").disabled=false;$("voice-status").textContent="listening";
+          $("heard").textContent="Listening locally. Speak a command.";
+          $("confidence").textContent="Recognition: local Vosk";
+          setLive(true);
+          source.connect(localProcessor);localProcessor.connect(localContext.destination);
+          localProcessor.onaudioprocess=(event)=>{
+            if(!listening||localSocket.readyState!==WebSocket.OPEN)return;
+            const input=event.inputBuffer.getChannelData(0);
+            const resampled=resampleTo16k(input,localContext.sampleRate);
+            localSocket.send(floatToPcm16(resampled));
+          };
+        };
+        localSocket.onmessage=(event)=>{
+          const message=JSON.parse(event.data);
+          if(message.partial){$("heard").textContent="Listening: "+message.partial;}
+          if(message.final){$("confidence").textContent="Recognition: local final";runCommand(message.final.toLowerCase(),true);}
+          if(message.error){$("voice-status").textContent="error";$("heard").textContent=message.error;}
+        };
+        localSocket.onclose=()=>{if(listening)stopListening()};
+        localSocket.onerror=()=>{$("voice-status").textContent="error";$("heard").textContent="Could not connect to the local speech service.";stopListening()};
+      }catch(error){
+        $("voice-status").textContent="error";
+        $("heard").textContent=error.name==="NotAllowedError"?"Microphone permission was denied.":"Could not start microphone: "+error.name;
+        $("confidence").textContent="Recognition: local unavailable";
+        listening=false;setLive(false);
+      }
+    }
+    function stopListening(){
+      listening=false;
+      if(localProcessor){localProcessor.disconnect();localProcessor.onaudioprocess=null;localProcessor=null;}
+      if(localContext){localContext.close().catch(()=>{});localContext=null;}
+      if(localStream){localStream.getTracks().forEach((track)=>track.stop());localStream=null;}
+      if(localSocket){localSocket.close();localSocket=null;}
+      recognition=null;
+      $("listen").disabled=false;$("stop-listen").disabled=true;$("voice-status").textContent="idle";$("heard").textContent="Local voice recognition stopped.";setLive(false);
+    }
+    $("listen").addEventListener("click",startListening);$("stop-listen").addEventListener("click",stopListening);
+    $("start-all").addEventListener("click",async()=>{await enableCamera();startListening();document.querySelector("#try").scrollIntoView({behavior:"smooth"})});
+    $("run-command").addEventListener("click",()=>{const input=$("text-command"),command=input.value.trim();if(command){runCommand(command,false);input.select()}});
+    $("text-command").addEventListener("keydown",(event)=>{if(event.key==="Enter")$("run-command").click()});
+    document.querySelectorAll(".command-chip").forEach((chip)=>chip.addEventListener("click",()=>{$("text-command").value=chip.dataset.command;$("run-command").click()}));
+    async function testMicrophone(){const diagnostic=$("mic-diagnostic");diagnostic.className="diagnostic";diagnostic.textContent="Requesting microphone access...";if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){diagnostic.className="diagnostic bad";diagnostic.textContent="Microphone API unavailable. Open the app in Chrome or Edge over localhost.";return;}if(!window.isSecureContext){diagnostic.className="diagnostic bad";diagnostic.textContent="Mic access requires localhost or HTTPS.";return;}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});const track=stream.getAudioTracks()[0];diagnostic.className="diagnostic good";diagnostic.textContent="Microphone connected: "+(track&&track.label?track.label:"microphone detected")+".";stream.getTracks().forEach((item)=>item.stop());$("confidence").textContent="Recognition: microphone ready";toast("Microphone connected");}catch(error){diagnostic.className="diagnostic bad";diagnostic.textContent="Microphone blocked: "+error.name+". Allow microphone access in the browser address-bar permission menu.";toast("Microphone permission needed");}}
+    $("mic-test").addEventListener("click",testMicrophone);
+    if(!window.isSecureContext){$("mic-diagnostic").className="diagnostic bad";$("mic-diagnostic").textContent="Mic access requires localhost or HTTPS.";}
+  </script>
+</body>
+</html>

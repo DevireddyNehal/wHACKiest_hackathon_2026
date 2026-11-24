@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraOS Command Center</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="panel-container">
+    <!-- Top Header -->
+    <header class="panel-header">
+      <div class="brand">
+        <span class="logo-aura">AURA</span><span class="logo-os">OS</span>
+        <span class="hackathon-tag">wHACKiest '26</span>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot live" id="backend-status-dot"></span>
+        <span class="status-label" id="backend-status-text">Backend Live</span>
+      </div>
+    </header>
+
+    <!-- Mode Selector: Desk Mode vs Air Mode -->
+    <section class="mode-section">
+      <div class="mode-switch-pill">
+        <button class="mode-btn active" id="btn-mode-desk">
+          <span class="icon">🖱️</span> Desk Mode
+        </button>
+        <button class="mode-btn" id="btn-mode-air">
+          <span class="icon">🖐️</span> Air Mode
+        </button>
+      </div>
+      <div class="mode-caption" id="mode-caption">
+        <strong>Desk Mode:</strong> Hover cursor over any element + press <code>Alt+S</code> to unmask fees & traps.
+      </div>
+    </section>
+
+    <!-- Voice Command Bar -->
+    <section class="voice-section">
+      <div class="voice-bar">
+        <button class="mic-btn" id="btn-mic-toggle">🎙️</button>
+        <input type="text" id="voice-input" placeholder="Speak or type intent (e.g. 'Compare flight on IndiGo')..." />
+        <button class="send-btn" id="btn-voice-send">→</button>
+      </div>
+      <div class="voice-hint">Powered by <strong>ElevenLabs</strong> full-duplex conversational voice</div>
+    </section>
+
+    <!-- Tab Panels / Sections -->
+    <main class="modules-container">
+      <!-- Pillar 3: Multi-Tab Swarm -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h3>SynapseWeb Multi-Tab Swarm</h3>
+        </div>
+        <p class="card-desc">Parallel cross-site execution & true fee comparison.</p>
+        <button class="action-btn" id="btn-run-swarm">Execute Parallel Swarm</button>
+        <div class="swarm-results" id="swarm-results-box" style="display: none;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Pillar 4: GhostButler Background Tasks -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">🤖</span>
+          <h3>GhostButler Background Sniper</h3>
+        </div>
+        <p class="card-desc">Watches slots & queues while your laptop is closed. Alerts via WhatsApp.</p>
+        <div class="mission-pill" id="active-mission-pill">
+          <span class="live-dot"></span>
+          <span>IRCTC Tatkal 3AC (Nov 28) — Monitoring</span>
+        </div>
+        <button class="action-btn secondary" id="btn-trigger-whatsapp">Simulate Slot Trigger & WhatsApp</button>
+        <div class="whatsapp-preview" id="whatsapp-preview-box" style="display: none;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Pillar 5: RewindWeb Memory -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">🕰️</span>
+          <h3>RewindWeb Semantic Memory</h3>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="memory-search-input" placeholder="Search past concepts (e.g. 'LLM benchmark')..." />
+        </div>
+        <div class="memory-list" id="memory-list-box">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </main>
+
+    <footer class="panel-footer">
+      <span>Track 02: Beyond the Browser</span>
+      <span class="version-tag">v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

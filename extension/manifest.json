@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "AuraOS — Autonomous Web Operating System",
+  "version": "1.0.0",
+  "description": "Beyond the Browser: Autonomous spatial input, multi-tab execution, real-time micro-comprehension, and background delegation.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "content/smartpoint.js",
+        "content/airtouch.js",
+        "content/content_script.js"
+      ],
+      "css": [
+        "content/styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Open AuraOS Command Center"
+  },
+  "commands": {
+    "toggle-smartpoint": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space",
+        "mac": "Command+Shift+Space"
+      },
+      "description": "Trigger SmartPoint Micro-Comprehension"
+    }
+  }
+}
