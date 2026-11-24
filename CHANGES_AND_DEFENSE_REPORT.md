@@ -5,6 +5,8 @@
 
 ---
 
+> **Historical report:** This fact-check predates the current prototype changes. Its architecture and test-coverage statements are not current implementation evidence; consult `README.md` and the live dashboard before making claims.
+
 ## 1. Executive Summary of Changes
 This document details the surgical fact-checking, empirical citations, and architectural clarifications applied to the master slide deck (`TeamName_Track2.pptx` / `SUBMISSION_DECK.md`) and repository tests. All claims are now 100% verifiable and defensible under rigorous technical questioning by hackathon judges.
 

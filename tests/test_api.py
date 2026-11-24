@@ -1,77 +1,135 @@
-"""
-AuraOS - End-to-End Test Suite
-Tests all 5 pillars of the Autonomous Web Operating System.
-"""
+"""Focused API smoke and safety tests for the AuraOS demo."""
 
-import asyncio
+import sys
+from pathlib import Path
+
 from fastapi.testclient import TestClient
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from backend.main import app
 
 client = TestClient(app)
 
-def test_root_and_health():
-    res = client.get("/")
-    assert res.status_code == 200
-    data = res.json()
-    assert data["project"] == "AuraOS"
-    assert "pillars" in data
 
-    h = client.get("/health")
-    assert h.status_code == 200
-    assert h.json()["status"] == "HEALTHY"
+def test_dashboard_and_health():
+    page = client.get("/")
+    assert page.status_code == 200
+    assert "AuraOS" in page.text
+    status = client.get("/api/status")
+    assert status.status_code == 200
+    assert status.json()["demo_mode"] is True
+    assert client.get("/health").json()["status"] == "HEALTHY"
 
-def test_pillar1_smartpoint():
-    """Test Micro-DOM Analysis & Hidden Fee Unmasking"""
-    payload = {
-        "dom_snippet": "<div class='fare-card'>Flight BLR to DEL: ₹4,899</div>",
-        "user_prompt": "What is the real price with convenience fees?",
-        "url": "https://booking.example.com"
-    }
-    res = client.post("/api/smartpoint/analyze", json=payload)
-    assert res.status_code == 200
-    data = res.json()
-    assert "breakdown" in data
+
+def test_smartpoint_uses_only_submitted_context():
+    response = client.post(
+        "/api/smartpoint/analyze",
+        json={
+            "dom_snippet": "<div>Base fare ₹4,899 · fee ₹250</div>",
+            "user_prompt": "Check the total",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
     assert data["category"] == "PRICING_UNMASKED"
-    print("✓ Pillar 1 (SmartPoint) Passed:", data["title"])
+    assert data["analysis_mode"] == "DEMO_MOCK"
+    assert "cannot verify" in data["summary"]
+    assert "₹1,950" not in str(data)
+    limited = client.post(
+        "/api/smartpoint/analyze",
+        json={"dom_snippet": "Seat selected", "user_prompt": "Check the total fee"},
+    ).json()
+    assert limited["title"] == "Pricing question · limited excerpt"
+    assert client.post(
+        "/api/smartpoint/analyze", json={"dom_snippet": "x" * 2501}
+    ).status_code == 422
+    assert client.post(
+        "/api/smartpoint/analyze", json={"dom_snippet": "   "}
+    ).status_code == 422
 
-def test_pillar3_synapse_swarm():
-    """Test Multi-Tab Parallel Swarm Execution"""
-    payload = {
-        "goal": "Find cheapest direct flight BLR to DEL on Friday",
-        "target_sites": ["MakeMyTrip", "IndiGo Direct", "EaseMyTrip"]
-    }
-    res = client.post("/api/swarm/execute", json=payload)
-    assert res.status_code == 200
-    data = res.json()
-    assert data["status"] == "COMPLETED"
-    assert "winner" in data
-    print("✓ Pillar 3 (SynapseSwarm) Passed:", data["winner"]["platform"])
 
-def test_pillar4_ghost_butler():
-    """Test Background Mission Creation and Slot Trigger"""
-    # 1. List
-    res = client.get("/api/butler/missions")
-    assert res.status_code == 200
-    assert len(res.json()) >= 1
+def test_synapse_is_explicitly_simulated():
+    response = client.post(
+        "/api/swarm/execute",
+        json={"goal": "Compare demo flights", "target_sites": ["Site A", "Site B"]},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["execution_mode"] == "SIMULATED"
+    assert data["prefilled_cart_ready"] is False
+    assert "No websites were opened" in data["message"]
+    assert client.post(
+        "/api/swarm/execute", json={"goal": " ", "target_sites": ["Site A"]}
+    ).status_code == 422
 
-    # 2. Trigger demo event
-    res2 = client.post("/api/butler/missions/trigger-demo", json={"mission_id": "mission_tatkal_demo"})
-    assert res2.status_code == 200
-    assert res2.json()["status"] == "EVENT_TRIGGERED"
-    print("✓ Pillar 4 (GhostButler) Passed: Notification Dispatched to WhatsApp")
 
-def test_pillar5_rewind_memory():
-    """Test Semantic History Search"""
-    res = client.post("/api/memory/search", json={"query": "LLM"})
-    assert res.status_code == 200
-    data = res.json()
-    assert data["results_count"] >= 1
-    print("✓ Pillar 5 (RewindWeb) Passed: Memory items retrieved")
+def test_ghostbutler_requires_confirmation_and_never_books():
+    mission_id = client.get("/api/butler/missions").json()[0]["id"]
+    path = "/api/butler/missions/trigger-demo"
+    payload = {"mission_id": mission_id}
+    assert client.post(path, json=payload).status_code == 409
+    response = client.post(path, json={**payload, "confirmed": True})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "DEMO_EVENT_TRIGGERED"
+    assert data["notification"]["status"] == "IN_APP_PREVIEW"
+    assert data["notification"]["recipient"] is None
+    assert "no booking or payment was made" in data["notification"]["message"]
+    assert client.post(
+        path, json={"mission_id": "missing", "confirmed": True}
+    ).status_code == 404
+    scheduled = client.post(
+        "/api/butler/missions/create",
+        json={
+            "title": "Scheduled demo reminder",
+            "target_url": "Example portal",
+            "condition": "Reminder time arrives",
+            "scheduled_for": "2099-01-01T00:00:00+00:00",
+        },
+    )
+    scheduled_id = scheduled.json()["mission"]["id"]
+    assert client.post(
+        path, json={"mission_id": scheduled_id, "confirmed": True}
+    ).status_code == 409
+    assert client.post(
+        "/api/butler/missions/create",
+        json={
+            "title": "Invalid schedule",
+            "target_url": "Example portal",
+            "condition": "Reminder time arrives",
+            "scheduled_for": "2099-01-01T00:00:00",
+        },
+    ).status_code == 422
+
+
+def test_rewind_has_empty_state_and_explicit_capture():
+    empty = client.post("/api/memory/search", json={"query": "not-in-demo-data"})
+    assert empty.status_code == 200
+    assert empty.json()["results"] == []
+
+    saved = client.post(
+        "/api/memory/capture",
+        json={
+            "title": "My test note",
+            "url": "https://example.com/note",
+            "snippet": "User-selected snippet for a memory test",
+        },
+    )
+    assert saved.status_code == 200
+    found = client.post("/api/memory/search", json={"query": "memory test"})
+    assert found.json()["results_count"] == 1
+    assert found.json()["results"][0]["demo"] is False
+
 
 if __name__ == "__main__":
-    test_root_and_health()
-    test_pillar1_smartpoint()
-    test_pillar3_synapse_swarm()
-    test_pillar4_ghost_butler()
-    test_pillar5_rewind_memory()
-    print("\n✓ Smoke tests passed for endpoints (Pillars 1, 3, 4, 5). AirTouch (Pillar 2) tested manually via browser DOM events.")
+    tests = [
+        test_dashboard_and_health,
+        test_smartpoint_uses_only_submitted_context,
+        test_synapse_is_explicitly_simulated,
+        test_ghostbutler_requires_confirmation_and_never_books,
+        test_rewind_has_empty_state_and_explicit_capture,
+    ]
+    for test in tests:
+        test()
+        print(f"PASS {test.__name__}")

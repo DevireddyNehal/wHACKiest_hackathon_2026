@@ -37,11 +37,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         dom_snippet: message.dom_snippet,
-        user_prompt: message.prompt || "Explain and audit this element",
-        url: sender.tab?.url || ""
+        user_prompt: message.prompt || "Explain and audit this element"
       })
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(typeof data.detail === "string" ? data.detail : "Analysis request failed.");
+        }
+        return data;
+      })
       .then((data) => sendResponse({ success: true, data }))
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;

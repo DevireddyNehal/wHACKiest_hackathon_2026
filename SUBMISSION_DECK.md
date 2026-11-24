@@ -3,9 +3,11 @@
 > **Track:** Track 02 — *Beyond the Browser*  
 > **Project Name:** **AuraOS — The Autonomous Web Operating System**  
 > **Repository:** https://github.com/DevireddyNehal/wHACKiest_hackathon_2026  
-> **Status:** All empirical claims sourced, architecture verified, transparent prototype status.
+> **Status:** Draft deck; several described capabilities are not implemented in the current prototype.
 
 ---
+
+> **Current demo boundary:** The dashboard uses sample comparison data, pointer-only AirTouch, text-only demo memory, and a manually confirmed in-app GhostButler preview. It does not monitor portals, bypass queues, book slots, send WhatsApp messages, or initiate payment. Verify the claims below before presenting.
 
 ## 🟩 SLIDE 1: COVER & MISSION STATEMENT
 

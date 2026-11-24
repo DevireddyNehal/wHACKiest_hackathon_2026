@@ -34,11 +34,13 @@ class SmartPointEngine {
     chrome.runtime.onMessage.addListener((msg) => {
       if (msg.type === "TRIGGER_SMARTPOINT") {
         this.triggerAnalysis();
+      } else if (msg.type === "ANALYZE_MICRO_DOM") {
+        this.triggerAnalysis(msg.prompt);
       }
     });
   }
 
-  triggerAnalysis() {
+  triggerAnalysis(userPrompt = "Explain this selected text") {
     if (!this.currentHoveredElement || this.isAnalyzing) return;
     this.isAnalyzing = true;
 
@@ -57,7 +59,7 @@ class SmartPointEngine {
       {
         type: "ANALYZE_MICRO_DOM",
         dom_snippet: domSnippet,
-        prompt: "Analyze this element: audit hidden fees, explain cryptic terms, and flag dark patterns"
+        prompt: userPrompt
       },
       (res) => {
         this.isAnalyzing = false;
@@ -90,71 +92,95 @@ class SmartPointEngine {
 
     this.hudElement = document.createElement("div");
     this.hudElement.className = "aura-smartpoint-hud";
-    this.hudElement.style.left = `${Math.min(x, window.innerWidth - 380)}px`;
+    this.hudElement.style.width = `${Math.min(360, window.innerWidth - 24)}px`;
+    this.hudElement.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 368))}px`;
     this.hudElement.style.top = `${y}px`;
 
-    if (isLoading) {
-      this.hudElement.innerHTML = `
-        <div class="aura-hud-header">
-          <span class="aura-badge loading">✨ SmartPoint AI</span>
-          <span class="aura-hud-close">&times;</span>
-        </div>
-        <div class="aura-hud-loading">
-          <div class="aura-spinner"></div>
-          <span>Analyzing micro-DOM context...</span>
-        </div>
-      `;
-    } else {
-      let breakdownHtml = "";
-      if (data.breakdown && Array.isArray(data.breakdown)) {
-        breakdownHtml = data.breakdown.map(b => `
-          <div class="aura-breakdown-row ${b.warning ? 'warn' : ''} ${b.highlight ? 'highlight' : ''}">
-            <span class="aura-item-name">${b.item}</span>
-            <span class="aura-item-val">${b.amount}</span>
-          </div>
-        `).join("");
-      }
+    const header = document.createElement("div");
+    header.className = "aura-hud-header";
+    const badge = document.createElement("span");
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "aura-hud-close";
+    close.setAttribute("aria-label", "Close SmartPoint");
+    close.textContent = "×";
+    close.addEventListener("click", () => this.removeHUD());
 
-      this.hudElement.innerHTML = `
-        <div class="aura-hud-header">
-          <span class="aura-badge ${data.category === 'DARK_PATTERN_WARNING' ? 'bad' : 'ok'}">${data.badge}</span>
-          <span class="aura-hud-close" id="aura-close-btn">&times;</span>
-        </div>
-        <h4 class="aura-hud-title">${data.title}</h4>
-        <p class="aura-hud-summary">${data.summary}</p>
-        <div class="aura-hud-breakdown">
-          ${breakdownHtml}
-        </div>
-        <div class="aura-hud-footer">
-          <span class="aura-hud-rec">💡 ${data.action_recommendation}</span>
-          <span class="aura-hud-latency">${data.latency_ms}ms</span>
-        </div>
-      `;
+    if (isLoading) {
+      badge.className = "aura-badge loading";
+      badge.textContent = "SmartPoint demo";
+      header.append(badge, close);
+      const loading = document.createElement("div");
+      loading.className = "aura-hud-loading";
+      const spinner = document.createElement("div");
+      spinner.className = "aura-spinner";
+      const label = document.createElement("span");
+      label.textContent = "Analyzing selected text…";
+      loading.append(spinner, label);
+      this.hudElement.append(header, loading);
+    } else {
+      badge.className = `aura-badge ${data.category === "DARK_PATTERN_WARNING" ? "bad" : "ok"}`;
+      badge.textContent = data.badge || "Demo analysis";
+      header.append(badge, close);
+      const title = document.createElement("h4");
+      title.className = "aura-hud-title";
+      title.textContent = data.title || "Selected text";
+      const summary = document.createElement("p");
+      summary.className = "aura-hud-summary";
+      summary.textContent = data.summary || "";
+      const breakdown = document.createElement("div");
+      breakdown.className = "aura-hud-breakdown";
+      (Array.isArray(data.breakdown) ? data.breakdown : []).forEach((item) => {
+        const row = document.createElement("div");
+        row.className = `aura-breakdown-row${item.warning ? " warn" : ""}${item.highlight ? " highlight" : ""}`;
+        const name = document.createElement("span");
+        name.className = "aura-item-name";
+        name.textContent = item.item || "Detail";
+        const value = document.createElement("span");
+        value.className = "aura-item-val";
+        value.textContent = item.amount || "";
+        row.append(name, value);
+        breakdown.append(row);
+      });
+      const footer = document.createElement("div");
+      footer.className = "aura-hud-footer";
+      const recommendation = document.createElement("span");
+      recommendation.className = "aura-hud-rec";
+      recommendation.textContent = data.action_recommendation || "Review the full context.";
+      const mode = document.createElement("span");
+      mode.className = "aura-hud-latency";
+      mode.textContent = data.analysis_mode === "OPENAI" ? "OpenAI" : "Demo";
+      footer.append(recommendation, mode);
+      this.hudElement.append(header, title, summary, breakdown, footer);
     }
 
     document.body.appendChild(this.hudElement);
-
-    const closeBtn = this.hudElement.querySelector(".aura-hud-close");
-    if (closeBtn) {
-      closeBtn.onclick = () => this.removeHUD();
-    }
   }
 
   showErrorHUD(x, y, errorMsg) {
     this.removeHUD();
     this.hudElement = document.createElement("div");
     this.hudElement.className = "aura-smartpoint-hud";
-    this.hudElement.style.left = `${x}px`;
+    this.hudElement.style.width = `${Math.min(360, window.innerWidth - 24)}px`;
+    this.hudElement.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 368))}px`;
     this.hudElement.style.top = `${y}px`;
-    this.hudElement.innerHTML = `
-      <div class="aura-hud-header">
-        <span class="aura-badge bad">Connection Notice</span>
-        <span class="aura-hud-close" id="aura-close-btn">&times;</span>
-      </div>
-      <p class="aura-hud-summary">Backend offline. Please start local backend: <code>python backend/main.py</code></p>
-    `;
+    const header = document.createElement("div");
+    header.className = "aura-hud-header";
+    const badge = document.createElement("span");
+    badge.className = "aura-badge bad";
+    badge.textContent = "Analysis unavailable";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "aura-hud-close";
+    close.setAttribute("aria-label", "Close SmartPoint");
+    close.textContent = "×";
+    close.addEventListener("click", () => this.removeHUD());
+    header.append(badge, close);
+    const message = document.createElement("p");
+    message.className = "aura-hud-summary";
+    message.textContent = errorMsg || "Start the local AuraOS backend and try again.";
+    this.hudElement.append(header, message);
     document.body.appendChild(this.hudElement);
-    this.hudElement.querySelector(".aura-hud-close").onclick = () => this.removeHUD();
   }
 
   removeHUD() {

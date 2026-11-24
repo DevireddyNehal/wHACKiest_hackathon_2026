@@ -5,7 +5,8 @@ The Autonomous Web Operating System for wHACKiest 2026 (Track 02: Beyond the Bro
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
+from pathlib import Path
 import logging
 
 from backend.config import settings
@@ -20,15 +21,17 @@ logger = logging.getLogger("AuraOS.Main")
 
 app = FastAPI(
     title="AuraOS - The Autonomous Web Operating System",
-    description="Backend orchestration engine for wHACKiest 2026 (Track 02: Beyond the Browser). Unifies SmartPoint, AirTouch, SynapseWeb, GhostButler, and RewindWeb.",
+    description="Local API for the AuraOS five-pillar prototype. External site automation, booking, messaging, and payments are not enabled.",
     version="1.0.0"
 )
+APP_ROOT = Path(__file__).resolve().parent.parent
 
 # Enable CORS for Chrome Extension and local frontends
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_origin_regex=r"chrome-extension://[a-p]{32}",
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -42,13 +45,19 @@ app.include_router(voice_gateway.router)
 
 @app.get("/")
 def root_status():
+    return FileResponse(APP_ROOT / "index.html")
+
+@app.get("/api/status")
+def api_status():
     return {
         "project": "AuraOS",
         "tagline": "The Autonomous Web Operating System",
         "hackathon": "wHACKiest 2026 - CodeRIT MSRIT Bengaluru",
         "track": "Track 02: Beyond the Browser",
         "status": "ONLINE",
-        "mock_mode": settings.is_mock_llm,
+        "mock_mode": not bool(settings.OPENAI_API_KEY),
+        "demo_mode": True,
+        "analysis_mode": "OPENAI_CONFIGURED" if settings.OPENAI_API_KEY else "DEMO_MOCK",
         "pillars": {
             "pillar_1_smartpoint": "/api/smartpoint/analyze",
             "pillar_2_airtouch_voice": "/ws/voice",

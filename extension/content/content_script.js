@@ -3,7 +3,7 @@
  * Bridges incoming messages from SidePanel/Background to SmartPoint and AirTouch engines.
  */
 
-console.log("🌟 AuraOS Autonomous Web Operating System injected on page:", window.location.href);
+console.log("AuraOS prototype content scripts loaded.");
 
 // Listen to Mode switches and commands from the SidePanel
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {

@@ -1,8 +1,10 @@
-# 🌐 AuraOS — The Autonomous Web Operating System
+# 🌐 AuraOS — A Browser Assistant Prototype
 > **wHACKiest 2026** | **Track 02: Beyond the Browser**  
 > *Department of Computer Science & Engineering, Ramaiah Institute of Technology (MSRIT), Bengaluru*
 
 ---
+
+> **Current build:** This is a runnable demo, not an autonomous booking product. The dashboard uses simulated comparisons, an in-app-only reminder alert, pointer-based AirTouch controls, and text-only in-memory notes. It does not bypass queues, monitor sites, book slots, send WhatsApp messages, or initiate payment.
 
 ## 📌 The Problem: The 30-Year-Old Web is Broken
 
@@ -17,7 +19,7 @@ The World Wide Web was built in 1993 for hyperlinked document reading. Today, we
 
 ## 🚀 The Solution: AuraOS
 
-**AuraOS** is the first **Autonomous Web Operating System** that bridges the **Past, the Present, and the Future** of your web experience. It turns the browser from a passive viewing canvas into an active, multi-modal autonomous execution environment.
+**AuraOS** is an experimental browser-assistant prototype that explores how small, user-controlled tools could bring context, comparison, reminders, and memory closer to everyday browsing.
 
 ```
                        ┌────────────────────────────────────────────────────────┐
@@ -32,13 +34,13 @@ The World Wide Web was built in 1993 for hyperlinked document reading. Today, we
          │                                         │                                         │
  ┌───────┴───────┐                         ┌───────┴───────┐                         ┌───────┴───────┐
  │  SMARTPOINT   │ Hover-to-Act /          │  GHOSTBUTLER  │ Background workers      │   REWINDWEB   │ Vector memory 
- │  (Desk Mode)  │ Micro-Comprehension     │               │ snipe queues & send     │               │ & time-travel 
- ├───────────────┤                         │               │ WhatsApp alerts         │               │ slider        
+ │  (Desk Mode)  │ Micro-Comprehension      │               │ show local demo alerts  │               │ & text timeline
+ ├───────────────┤                         │               │ local alert preview     │               │ slider
  │   AIRTOUCH    │ Hands-Free Spatial      └───────────────┘                         └───────────────┘
  │  (Air Mode)   │ Gestures via Webcam                                                       ▲
  ├───────────────┤                                                                           │
  │  SYNAPSEWEB   │ Multi-Tab Swarm                                                           │
- │  (The Brain)  │ Parallel Execution                                                        │
+ │  (The Brain)  │ Sample Comparison                                                        │
  └───────┬───────┘                                                                           │
          │                                                                                   │
          └───────────────────────────────── Feeds into Memory ───────────────────────────────┘
@@ -49,53 +51,61 @@ The World Wide Web was built in 1993 for hyperlinked document reading. Today, we
 ## 🏛️ The 5 Pillars of AuraOS
 
 ### 1. 🖱️ SmartPoint *(Desk Mode — Micro-Comprehension)*
-* **What it does:** Effortlessly glide your cursor over *any* confusing web component (a 50-line legal clause, a hidden flight fee, a complex chart, or an error code) and press `Alt+S`.
-* **The Magic:** Instead of dumping a 400KB webpage into an LLM, it extracts only the **2KB micro-DOM under your cursor**, unmasking hidden fees, flagging traps, or explaining concepts in **under 150ms**.
+* **Prototype:** Submit a short, user-selected text excerpt and a question. The local demo returns a bounded explanation and flags when the excerpt is too limited to verify a price or policy.
+* **Limit:** This dashboard does not capture page content automatically; configured AI providers may receive the excerpt sent to the backend.
 
 ### 2. 🖐️ AirTouch *(Air Mode — Spatial Hands-Free Interaction)*
-* **What it does:** Replaces finicky eye-tracking with rock-solid **Google MediaPipe Hand Gestures + ElevenLabs Conversational Voice**.
-* **The Magic:** Sit back hands-free. Point your index finger to cast a glowing virtual laser onto any element, speak your intent (*"Summarize this"*, *"Buy this"*), pinch fingers to click, or swipe your palm to scroll smoothly.
+* **Prototype:** The dashboard demonstrates a virtual pointer and simulated pinch/scroll controls using mouse input.
+* **Limit:** Webcam hand tracking and voice control are not implemented in this prototype; the page does not request camera access.
 
 ### 3. ⚡ SynapseWeb *(The Multi-Tab Swarm Engine)*
-* **What it does:** When a task requires comparing multiple sites (e.g., finding the cheapest direct flight or urgent medicine delivery), it opens and orchestrates 3–4 tabs in parallel.
-* **The Magic:** Navigates past deceptive aggregator markups down to the real checkout screen, unmasks hidden convenience fees, and surfaces a single unified comparison card with 1-click execution.
+* **Prototype:** Returns an illustrative comparison matrix to demonstrate how multi-site results could be presented.
+* **Limit:** No sites are opened or queried, sample prices are fictional, and there is no cart or checkout action.
 
 ### 4. 🤖 GhostButler *(The Asynchronous Future)*
-* **What it does:** Solves the agony of babysitting tabs. GhostButler works 24/7 in the cloud **while your laptop is closed or asleep**.
-* **The Magic:** Monitors dynamic portals, snipes high-demand slots (IRCTC Tatkal train tickets at 10 AM, university exam results, flash sales), pre-reserves the slot, and dispatches a **WhatsApp notification with a 1-tap UPI payment link** holding your spot.
+* **Prototype:** Saves an in-memory reminder template, optionally checks a scheduled time, and shows an in-app alert preview after explicit confirmation.
+* **Limit:** There is no background scheduler, portal monitoring, queue bypass, booking, WhatsApp dispatch, or payment initiation.
 
 ### 5. 🕰️ RewindWeb *(The Cognitive Memory)*
-* **What it does:** A privacy-first local semantic memory engine.
-* **The Magic:** Instead of useless URL-only history, search concepts (*"What was that research paper on LLM memory I read on Tuesday?"*), or drag an interactive **Time-Travel Slider** to restore page states or accidentally closed forms.
+* **Prototype:** Search example notes and save text, a title, and an optional URL only when you choose. A slider browses the visible text records.
+* **Limit:** Search is keyword matching, entries are held in memory until the backend restarts, and no page snapshots or browser history are collected.
 
 ---
 
 ## 🏆 Hackathon Alignment & Sponsor Technology
 
 * **Official Track:** Track 02: *Beyond the Browser* (`Browser agents`, `Web automation`, `Accessibility`, `Search`).
-* **ElevenLabs (Sponsor Prize):** Integrated via low-latency Conversational Voice WebSockets (`/ws/voice`) for full-duplex speech feedback and real-time audio interruptions.
-* **AWS (Sponsor Prize):** Headless background workers and GhostButler daemons designed for serverless execution on **AWS Lambda** and **AWS ECS/App Runner**, with LLM routing via **AWS Bedrock**.
+* The repository includes integration scaffolding, but this dashboard runs in demo mode and does not require sponsor credentials or external services.
 
 ---
 
-## ⚡ Quickstart Guide (Run in 2 Minutes)
+## ⚡ Quickstart Guide
 
 ### 1. Start the Backend Server
 ```bash
-# Clone the repository
-git clone <repo_url>
-cd wHACKiest_2026_hackathon
-
 # Activate virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run the master FastAPI orchestrator
+# Start the API and dashboard
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-*Backend is now live at `http://127.0.0.1:8000` (API Docs at `http://127.0.0.1:8000/docs`).*
+*Open the AuraOS dashboard at `http://127.0.0.1:8000`. API status is at `/api/status`; interactive API docs are at `/docs`.*
+Choose a pillar card or sidebar item to open its own screen; use **Overview** to return to the menu.
+
+The dashboard works without the Chrome extension. Loading `extension/` in Chrome is optional; extension features may require separate setup.
+
+### Publish a shareable demo with Render
+
+The repository includes a Render Blueprint in `render.yaml` for deploying the dashboard and FastAPI backend together. Keep the GitHub repository private and grant Render access to it:
+
+1. Push the deployment config and app changes to the GitHub `main` branch.
+2. In Render, choose **New → Blueprint**, connect the private GitHub repository, and select `main`.
+3. Review the `auraos-demo` web service and deploy it. Render will provide a public `onrender.com` URL to share.
+
+The service uses demo/mock integrations and requires no API keys. The free instance may sleep when idle, so the first visit after inactivity can take longer. Reminder templates and saved notes are in-memory demo data and may be cleared when the service restarts.
 
 ### 2. Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.
@@ -104,9 +114,19 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 4. Select the `extension/` folder inside this repository.
 5. Click the AuraOS extension icon or side-panel to open the **AuraOS Command Center**!
 
-### 3. Run the End-to-End Test Suite
+## 🎬 Demo walkthrough
+
+From the Overview, click a pillar card to open its own screen. Each screen includes its own quick-demo steps.
+
+1. **SmartPoint:** Edit the sample excerpt or question, then click **Analyze this snippet**. The result only uses that excerpt. In Chrome, hover over a small element and press `Alt+S` to open the extension HUD.
+2. **AirTouch:** Enable the pointer demo, aim at a practice tile, then simulate a pinch. No camera or hand tracking is used.
+3. **SynapseWeb:** Enter a comparison goal and click **Run sample comparison**. Results are illustrative; no sites are queried and no cart is prepared.
+4. **GhostButler:** Create a reminder template with an optional scheduled time. At or after that time, choose **Preview alert** and confirm. This creates an in-app preview only.
+5. **RewindWeb:** Search `LLM` or `hackathon`, save an optional text note, and use the slider to select a record. Search is keyword-based and memory resets when the backend restarts.
+
+### 3. Run the API smoke tests
 ```bash
-PYTHONPATH=. python tests/test_api.py
+python tests/test_api.py
 ```
 
 ---
@@ -115,6 +135,7 @@ PYTHONPATH=. python tests/test_api.py
 ```
 wHACKiest_2026_hackathon/
 ├── README.md               # Master Project Overview
+├── index.html              # Responsive dashboard served by FastAPI
 ├── ARCHITECTURE.md         # Deep Technical Specifications & Data Flow
 ├── DEV_GUIDE.md            # Complete Step-by-Step Guide for Team & AI
 ├── SUBMISSION_DECK.md      # Exact Slide-by-Slide Content for PPT Template

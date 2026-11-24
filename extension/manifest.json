@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AuraOS — Autonomous Web Operating System",
   "version": "1.0.0",
-  "description": "Beyond the Browser: Autonomous spatial input, multi-tab execution, real-time micro-comprehension, and background delegation.",
+  "description": "Beyond the Browser: user-controlled text analysis and pointer-based interaction demos.",
   "permissions": [
     "activeTab",
     "storage",

@@ -5,6 +5,8 @@
 
 ---
 
+> **Draft status:** This script predates the current prototype and includes unimplemented features. Do not present its scenes or claims as working behavior; use the live dashboard and `README.md` for an accurate demo.
+
 ### [0:00 – 0:35] Part 1: The Hook & The Crisis
 * **Video Scene:** Face camera or split-screen with messy browser tabs.
 * **Speaker:**

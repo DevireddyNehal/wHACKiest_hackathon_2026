@@ -4,16 +4,34 @@ Endpoint for parallel multi-site web automation, comparison, and form pre-fill.
 """
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from backend.services.llm_service import llm_service
 
 router = APIRouter(prefix="/api/swarm", tags=["SynapseSwarm"])
 
 class SwarmRequest(BaseModel):
-    goal: str
-    target_sites: Optional[List[str]] = None
-    max_parallel_tabs: Optional[int] = 3
+    goal: str = Field(min_length=1, max_length=300)
+    target_sites: Optional[List[str]] = Field(default=None, max_length=5)
+    max_parallel_tabs: int = Field(default=3, ge=1, le=5)
+
+    @field_validator("goal")
+    @classmethod
+    def require_nonblank_goal(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Comparison goal cannot be blank.")
+        return value
+
+    @field_validator("target_sites")
+    @classmethod
+    def validate_sites(cls, value: Optional[List[str]]) -> Optional[List[str]]:
+        if value is None:
+            return None
+        sites = [site.strip() for site in value if site.strip()]
+        if not sites or any(len(site) > 100 for site in sites):
+            raise ValueError("Provide up to five nonblank site labels of at most 100 characters.")
+        return sites
 
 class SwarmResponse(BaseModel):
     swarm_id: str
@@ -24,6 +42,8 @@ class SwarmResponse(BaseModel):
     comparison_matrix: List[Dict[str, Any]]
     prefilled_cart_ready: bool
     consent_shield_active: bool
+    execution_mode: str
+    message: str
 
 @router.post("/execute", response_model=SwarmResponse)
 async def execute_swarm_task(req: SwarmRequest):

@@ -5,13 +5,15 @@
 
 ---
 
+> **Status:** This is a target-state design document, not a description of the current executable prototype. The dashboard uses simulated comparisons, pointer-only AirTouch, text-only demo memory, and a manually confirmed in-app GhostButler preview. It does not monitor sites, bypass queues or access controls, book, message externally, or initiate payment.
+
 ## 1. High-Level System Architecture
 
 AuraOS follows a **Decoupled Edge-Agent Architecture**:
 * **Client-Side (Edge):** Chrome Manifest V3 Extension (Content Scripts, Virtual DOM Slicing, MediaPipe Gesture Raycasting, Frosted-Glass Popover HUD).
 * **Control Plane:** Manifest V3 Background Service Worker routing events between the active tab and the FastAPI orchestrator.
 * **Orchestration Engine:** Python FastAPI server handling micro-DOM LLM inferences, parallel swarm workers, and ElevenLabs full-duplex WebSocket connections.
-* **Asynchronous Execution:** Headless worker loops for 24/7 background slot monitoring, queue sniping, and WhatsApp webhooks.
+* **Asynchronous Execution (proposed):** Future reminder and alert services, subject to official APIs and explicit user confirmation.
 
 ```
 +---------------------------------------------------------------------------------------+
@@ -89,32 +91,17 @@ Traditional browser agents dump the entire 400KB HTML DOM or upload full 4K scre
 ---
 
 ### Subsystem 3: SynapseWeb Multi-Tab Swarm
-1. Receives user high-level goal: *"Find cheapest direct flight Bangalore to Delhi under ₹6,000"*.
-2. Swarm coordinator spawns parallel headless sessions across target competitor domains:
-   * Worker A: Aggregator (e.g., MakeMyTrip).
-   * Worker B: Direct Carrier (e.g., IndiGo).
-   * Worker C: Discount Portal (e.g., EaseMyTrip).
-3. Evaluates down to the **payment gateway stage** to expose hidden convenience fees, fuel surcharges, and baggage add-ons.
-4. Synthesizes a structured `ComparisonMatrix` payload with a designated `winner` and true total prices.
-5. Emits `prefilled_cart_ready` with a **Consent Shield** waiting for the user's 1-click payment confirmation.
+The current endpoint returns a labeled illustrative comparison matrix. It does not open tabs, inspect checkout pages, verify prices, prefill a cart, or perform transactions. A future implementation should use permitted data sources and present results as unverified until the user checks the provider.
 
 ---
 
 ### Subsystem 4: GhostButler (Asynchronous Cloud Daemon)
-1. User activates mission via Chrome Extension or WhatsApp: *"Snipe Tatkal 3AC seats for Bangalore to Chennai on Nov 28"*.
-2. Mission stored in background execution registry (`/api/butler/missions`).
-3. Autonomous loop wakes up at 09:59:58 AM IST.
-4. Navigates queue bypass holding pattern, parses captcha, auto-fills passenger details in 1.2 seconds.
-5. Holds seats for the 4-minute checkout window.
-6. Dispatches instant **WhatsApp notification via Twilio/Meta API** with a 1-tap UPI payment link.
+The current endpoint stores reminder templates in process memory and returns an in-app alert preview only after explicit confirmation. There is no scheduler or external notification integration in the dashboard. Any future availability feature must use official interfaces, respect queues and access controls, and stop before booking or payment.
 
 ---
 
 ### Subsystem 5: RewindWeb (Client-Side Semantic Memory)
-1. Intercepts page navigations and user interactions.
-2. Extracts core text, meta tags, and visual preview.
-3. Indexes content into a lightweight vector store (IndexedDB on client or server-side memory index).
-4. Enables natural language semantic search across browsing history (`/api/memory/search`) without requiring exact URL matches.
+The current implementation stores only titles, optional URLs, and short excerpts explicitly submitted by the user. It uses keyword matching in process memory; no browser history, screenshots, snapshots, or embeddings are collected.
 
 ---
 

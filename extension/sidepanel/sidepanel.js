@@ -1,38 +1,45 @@
-/**
- * AuraOS SidePanel Command Center Logic
- * Unifies all 5 pillars with real-time state and backend synchronization.
- */
+/** AuraOS extension side panel: communicates with the local demo backend. */
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 let currentMode = "DESK";
+let currentMissionId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initHealthCheck();
   initModeSwitch();
-  initVoiceInput();
+  initTextCommand();
   initSwarmButton();
   initGhostButler();
   initRewindMemory();
 });
 
-// 1. Backend Health Check
+async function request(path, options = {}) {
+  const response = await fetch(`${BACKEND_URL}${path}`, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+  });
+  let data = {};
+  try { data = await response.json(); } catch { /* handled as an empty error response */ }
+  if (!response.ok) {
+    throw new Error(typeof data.detail === "string" ? data.detail : "The backend request failed.");
+  }
+  return data;
+}
+
 function initHealthCheck() {
   const dot = document.getElementById("backend-status-dot");
   const label = document.getElementById("backend-status-text");
-
-  fetch(`${BACKEND_URL}/health`)
-    .then((res) => res.json())
-    .then((data) => {
+  request("/health")
+    .then(() => {
       dot.className = "status-dot live";
-      label.textContent = "Backend Live (Port 8000)";
+      label.textContent = "Local demo backend";
     })
     .catch(() => {
       dot.className = "status-dot dead";
-      label.textContent = "Backend Offline";
+      label.textContent = "Backend offline";
     });
 }
 
-// 2. Mode Switcher (Desk vs Air)
 function initModeSwitch() {
   const btnDesk = document.getElementById("btn-mode-desk");
   const btnAir = document.getElementById("btn-mode-air");
@@ -42,7 +49,7 @@ function initModeSwitch() {
     currentMode = "DESK";
     btnDesk.classList.add("active");
     btnAir.classList.remove("active");
-    caption.innerHTML = "<strong>Desk Mode:</strong> Hover cursor over any element + press <code>Alt+S</code> to unmask fees & traps.";
+    caption.textContent = "Desk Mode: hover over an element and use the extension shortcut to analyze a small selected excerpt.";
     sendModeToContentScript("DESK");
   });
 
@@ -50,157 +57,180 @@ function initModeSwitch() {
     currentMode = "AIR";
     btnAir.classList.add("active");
     btnDesk.classList.remove("active");
-    caption.innerHTML = "<strong>Air Mode (Active):</strong> Raise hand to point virtual laser. Pinch fingers to click. Palm swipe to scroll.";
+    caption.textContent = "Air Mode: pointer movement simulates a virtual laser. This prototype does not track hands or use the camera.";
     sendModeToContentScript("AIR");
   });
 }
 
 function sendModeToContentScript(mode) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]?.id) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "SET_MODE", mode });
-    }
+    if (tabs[0]?.id) chrome.tabs.sendMessage(tabs[0].id, { type: "SET_MODE", mode });
   });
 }
 
-// 3. Voice Command Bar
-function initVoiceInput() {
+function initTextCommand() {
   const input = document.getElementById("voice-input");
   const sendBtn = document.getElementById("btn-voice-send");
-  const micBtn = document.getElementById("btn-mic-toggle");
-
   const sendCommand = () => {
     const text = input.value.trim();
     if (!text) return;
-
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          type: "ANALYZE_MICRO_DOM",
-          prompt: text
-        });
+        chrome.tabs.sendMessage(tabs[0].id, { type: "ANALYZE_MICRO_DOM", prompt: text });
       }
     });
-
     input.value = "";
   };
-
   sendBtn.addEventListener("click", sendCommand);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendCommand();
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") sendCommand();
   });
+}
 
-  micBtn.addEventListener("click", () => {
-    micBtn.classList.toggle("listening");
-    if (micBtn.classList.contains("listening")) {
-      input.placeholder = "Listening via ElevenLabs Conversational Voice...";
-    } else {
-      input.placeholder = "Speak or type intent...";
+function initSwarmButton() {
+  const button = document.getElementById("btn-run-swarm");
+  const box = document.getElementById("swarm-results-box");
+  button.addEventListener("click", async () => {
+    button.textContent = "Preparing sample…";
+    button.disabled = true;
+    try {
+      const data = await request("/api/swarm/execute", {
+        method: "POST",
+        body: JSON.stringify({
+          goal: "Compare sample flight options from Bengaluru to Delhi",
+          target_sites: ["Direct carrier", "Travel marketplace", "Fare comparison"]
+        })
+      });
+      box.replaceChildren();
+      box.style.display = "block";
+      const winner = document.createElement("div");
+      winner.className = "winner-box";
+      const title = document.createElement("strong");
+      title.textContent = `Illustrative example: ${data.winner.platform}`;
+      const detail = document.createElement("p");
+      detail.textContent = `${data.winner.final_price} · ${data.winner.savings}`;
+      winner.append(title, detail);
+      box.append(winner);
+
+      const rows = document.createElement("div");
+      rows.className = "matrix-list";
+      (data.comparison_matrix || []).forEach((item) => {
+        const row = document.createElement("div");
+        row.className = `matrix-row${item.is_best ? " best" : ""}`;
+        const platform = document.createElement("span");
+        platform.textContent = item.platform;
+        const price = document.createElement("span");
+        price.className = "price";
+        price.textContent = item.total;
+        row.append(platform, price);
+        rows.append(row);
+      });
+      box.append(rows);
+      const note = document.createElement("p");
+      note.className = "card-desc";
+      note.textContent = data.message;
+      box.append(note);
+    } catch (error) {
+      box.replaceChildren(document.createTextNode(error.message));
+      box.style.display = "block";
+    } finally {
+      button.textContent = "Show sample comparison";
+      button.disabled = false;
     }
   });
 }
 
-// 4. Pillar 3: Multi-Tab Swarm
-function initSwarmButton() {
-  const btn = document.getElementById("btn-run-swarm");
-  const box = document.getElementById("swarm-results-box");
+async function initGhostButler() {
+  const pill = document.getElementById("active-mission-pill");
+  const pillText = pill.querySelector("span:last-child");
+  const button = document.getElementById("btn-trigger-whatsapp");
+  const preview = document.getElementById("whatsapp-preview-box");
+  try {
+    const missions = await request("/api/butler/missions");
+    const mission = missions[0];
+    if (!mission) {
+      pillText.textContent = "No demo reminder available";
+      button.disabled = true;
+      return;
+    }
+    currentMissionId = mission.id;
+    pillText.textContent = `${mission.title} · demo only`;
+  } catch (error) {
+    pillText.textContent = error.message;
+    button.disabled = true;
+  }
 
-  btn.addEventListener("click", () => {
-    btn.textContent = "Scanning 3 parallel sites...";
-    btn.disabled = true;
-
-    fetch(`${BACKEND_URL}/api/swarm/execute`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        goal: "Find cheapest direct flight Bangalore to Delhi with 15kg baggage",
-        target_sites: ["MakeMyTrip", "IndiGo Direct", "EaseMyTrip"]
-      })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        btn.textContent = "Execute Parallel Swarm";
-        btn.disabled = false;
-        box.style.display = "block";
-
-        let matrixRows = data.comparison_matrix.map(m => `
-          <div class="matrix-row ${m.is_best ? 'best' : ''}">
-            <span>${m.platform}</span>
-            <span class="price">${m.total} ${m.is_best ? '🏆' : ''}</span>
-          </div>
-        `).join("");
-
-        box.innerHTML = `
-          <div class="winner-box">
-            <strong>${data.winner.platform} Wins</strong>
-            <p>${data.winner.savings} (${data.winner.final_price} total with baggage)</p>
-          </div>
-          <div class="matrix-list">${matrixRows}</div>
-          <div class="consent-pill">🛡️ Consent Shield Active: 1-Click Pay Ready</div>
-        `;
-      })
-      .catch(() => {
-        btn.textContent = "Execute Parallel Swarm";
-        btn.disabled = false;
+  button.addEventListener("click", async () => {
+    if (!currentMissionId) return;
+    const confirmed = window.confirm("Preview a simulated in-app alert? No site will be checked and no booking or payment will happen.");
+    if (!confirmed) return;
+    button.disabled = true;
+    try {
+      const data = await request("/api/butler/missions/trigger-demo", {
+        method: "POST",
+        body: JSON.stringify({ mission_id: currentMissionId, confirmed: true })
       });
+      preview.replaceChildren();
+      preview.style.display = "block";
+      const bubble = document.createElement("div");
+      bubble.className = "whatsapp-bubble";
+      const title = document.createElement("div");
+      title.className = "wa-header";
+      title.textContent = "In-app demo alert · not sent";
+      const message = document.createElement("p");
+      message.className = "wa-body";
+      message.textContent = data.notification.message;
+      bubble.append(title, message);
+      preview.append(bubble);
+    } catch (error) {
+      preview.textContent = error.message;
+      preview.style.display = "block";
+    } finally {
+      button.disabled = false;
+    }
   });
 }
 
-// 5. Pillar 4: GhostButler Background Tasks
-function initGhostButler() {
-  const triggerBtn = document.getElementById("btn-trigger-whatsapp");
-  const previewBox = document.getElementById("whatsapp-preview-box");
-
-  triggerBtn.addEventListener("click", () => {
-    triggerBtn.textContent = "Triggering Background Event...";
-
-    fetch(`${BACKEND_URL}/api/butler/missions/trigger-demo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mission_id: "mission_tatkal_demo" })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        triggerBtn.textContent = "Simulate Slot Trigger & WhatsApp";
-        previewBox.style.display = "block";
-        const notif = data.notification;
-        previewBox.innerHTML = `
-          <div class="whatsapp-bubble">
-            <div class="wa-header">📲 WhatsApp Message Dispatched (${notif.recipient})</div>
-            <pre class="wa-body">${notif.message}</pre>
-          </div>
-        `;
-      });
-  });
-}
-
-// 6. Pillar 5: RewindWeb Memory
 function initRewindMemory() {
   const input = document.getElementById("memory-search-input");
   const list = document.getElementById("memory-list-box");
-
-  const fetchMemory = (q = "") => {
-    fetch(`${BACKEND_URL}/api/memory/search`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        list.innerHTML = data.results.map(r => `
-          <div class="memory-card">
-            <span class="mem-tag">${r.category}</span>
-            <strong class="mem-title">${r.title}</strong>
-            <p class="mem-snippet">${r.snippet}</p>
-            <span class="mem-time">${r.timestamp}</span>
-          </div>
-        `).join("");
+  let timer;
+  const fetchMemory = async (query = "") => {
+    try {
+      const data = await request("/api/memory/search", {
+        method: "POST",
+        body: JSON.stringify({ query })
       });
+      list.replaceChildren();
+      if (!data.results.length) {
+        list.append(document.createTextNode("No matching notes. Try another phrase."));
+        return;
+      }
+      data.results.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "memory-card";
+        const tag = document.createElement("span");
+        tag.className = "mem-tag";
+        tag.textContent = item.category;
+        const title = document.createElement("strong");
+        title.className = "mem-title";
+        title.textContent = item.title;
+        const snippet = document.createElement("p");
+        snippet.className = "mem-snippet";
+        snippet.textContent = item.snippet;
+        const timestamp = document.createElement("span");
+        timestamp.className = "mem-time";
+        timestamp.textContent = item.timestamp;
+        card.append(tag, title, snippet, timestamp);
+        list.append(card);
+      });
+    } catch (error) {
+      list.replaceChildren(document.createTextNode(error.message));
+    }
   };
-
   fetchMemory();
-
-  input.addEventListener("input", (e) => {
-    fetchMemory(e.target.value.trim());
+  input.addEventListener("input", (event) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fetchMemory(event.target.value.trim()), 180);
   });
 }

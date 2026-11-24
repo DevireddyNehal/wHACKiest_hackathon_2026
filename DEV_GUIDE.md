@@ -1,19 +1,17 @@
 # 🛠️ AuraOS Developer & AI Agent Execution Guide
 
-> **NOTICE FOR DEVELOPERS & AI ASSISTANTS (Claude, Codex, Cursor, Gemini):**  
-> Read this entire document before writing or editing code. This guide details the exact architecture, execution flow, testing procedures, and extension points for **AuraOS**.
+> **Current implementation notice:** Some historical sections below describe planned capabilities, not shipped behavior. The runnable dashboard is the source of truth; see `README.md` for current demo limits. Do not describe the prototype as monitoring portals, bypassing queues, booking, or making payments.
 
 ---
 
 ## 🧭 Project Mental Model
 
-AuraOS is an **Autonomous Web Operating System** designed for **wHACKiest 2026 (Track 02: Beyond the Browser)**.
-It bridges 5 core pillars:
-1. **SmartPoint (Desk Mode):** Cursor hover + `Alt+S` extracts a tiny micro-DOM under the mouse and shows a floating HUD unmasking fees/traps.
-2. **AirTouch (Air Mode):** MediaPipe webcam hand gestures (virtual laser pointer + pinch-to-click + palm-swipe scroll).
-3. **SynapseWeb (Swarm Engine):** Multi-tab parallel browser runner that compares competitor sites and exposes hidden fees.
-4. **GhostButler (Asynchronous Cloud Daemon):** 24/7 background slot sniper (Tatkal/results) that sends a WhatsApp notification with a 1-tap UPI payment link.
-5. **RewindWeb (Cognitive Memory):** Semantic search over past browsing history with visual time-travel.
+AuraOS is a **wHACKiest 2026 (Track 02: Beyond the Browser) prototype** with five connected demo tools:
+1. **SmartPoint:** User-submitted text analysis; the extension can send a small selected element on request.
+2. **AirTouch:** Pointer-based laser, simulated pinch selection, and simulated scroll; no camera tracking.
+3. **SynapseWeb:** Illustrative comparison data; no websites are queried.
+4. **GhostButler:** In-memory reminder templates with an optional due time and a manually confirmed in-app alert preview only.
+5. **RewindWeb:** Explicitly saved text notes and keyword search in process memory; no browser-history capture.
 
 ---
 
@@ -77,7 +75,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 # Run server
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-* **Verify:** Open your browser at `http://127.0.0.1:8000/`. You should see `{"project": "AuraOS", "status": "ONLINE"}`.  
+* **Verify:** Open `http://127.0.0.1:8000/` for the dashboard. `/api/status` reports backend mode and `/health` is the health check.
 * **Interactive Docs:** Visit `http://127.0.0.1:8000/docs` to test all Swagger endpoints interactively.
 
 ### 2. Load the Extension into Google Chrome
@@ -90,68 +88,52 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 
 ### 3. Run the Automated Test Suite (Terminal 2)
 ```bash
-PYTHONPATH=. .venv/bin/python tests/test_api.py
+python tests/test_api.py
 ```
-*All 5 tests must print `✓ Passed` and exit with code 0.*
+The tests cover the dashboard, bounded SmartPoint context, simulated Synapse results, GhostButler confirmation, and explicit RewindWeb capture.
 
 ---
 
 ## 🧪 How to Demo Each Pillar
 
 ### Demo 1: SmartPoint (Desk Mode)
-1. Open any webpage in Chrome (e.g. Wikipedia, Amazon, or a news site).
-2. Hover your mouse over any price tag, button, or dense paragraph.
-3. Press `Alt + S` (or click *Desk Mode* in the sidepanel).
-4. **Expected Result:** A glowing frosted-glass HUD card appears directly beneath the cursor displaying the unmasked fee breakdown, trap warnings, and latency in ms. Press `Escape` or the close icon to dismiss.
+1. Open a webpage in Chrome and deliberately hover over a small text element.
+2. Use the extension shortcut or enter a text prompt in the side panel.
+3. **Expected Result:** A HUD shows a demo explanation of the selected excerpt. It cannot verify charges or infer unseen page content.
 
 ### Demo 2: AirTouch (Air Mode)
 1. In the SidePanel, click **Air Mode**.
-2. **Expected Result:** A neon-cyan virtual laser dot appears on the webpage. Moving your mouse/hand projects the laser onto clickable cards.
+2. **Expected Result:** Pointer movement projects a virtual laser. Hand tracking and camera use are not implemented.
 
 ### Demo 3: SynapseWeb Multi-Tab Swarm
-1. In the SidePanel, navigate to the **SynapseWeb Multi-Tab Swarm** card.
-2. Click **Execute Parallel Swarm**.
-3. **Expected Result:** Button updates to *"Scanning 3 parallel sites..."* and returns a structured comparison matrix showing IndiGo Direct saving ₹2,049 with 1-click checkout ready.
+1. In the SidePanel, open the SynapseWeb comparison card.
+2. Click **Show sample comparison**.
+3. **Expected Result:** A clearly labeled illustrative matrix appears. No sites are opened and no cart is prepared.
 
-### Demo 4: GhostButler WhatsApp Alert
-1. In the SidePanel, look at the **GhostButler Background Sniper** card.
-2. Click **Simulate Slot Trigger & WhatsApp**.
-3. **Expected Result:** A WhatsApp bubble appears showing the simulated alert dispatched to `+919876543210` with the 4-minute holding countdown and payment link. (Check your backend terminal to see the live console dispatch log).
+### Demo 4: GhostButler In-App Alert
+1. In the dashboard or SidePanel, choose **Preview a demo alert**.
+2. Confirm the browser confirmation dialog.
+3. **Expected Result:** An in-app preview appears. No site is monitored, no booking is made, and no notification is sent externally.
 
-### Demo 5: RewindWeb Semantic Search
+### Demo 5: RewindWeb Text Search
 1. In the SidePanel, look at the **RewindWeb Semantic Memory** card.
 2. In the search box, type `LLM` or `hackathon`.
-3. **Expected Result:** Memory items update dynamically with relevant historical page cards and timestamps.
+3. **Expected Result:** Matching sample notes appear. Save only text you choose; entries reset when the backend restarts.
 
 ---
 
-## 🔑 Environment Variables & Live API Configuration
+## 🔑 Optional Provider Configuration
 
-AuraOS has **Zero-Config Mock Fallbacks**: it works 100% out-of-the-box for judges and grading even if no external keys are provided!
+AuraOS runs with deterministic demo responses by default. An optional OpenAI key enables provider analysis for the text excerpt submitted to SmartPoint; the UI labels this and notes that the backend forwards that excerpt to OpenAI. Other listed service variables are scaffolding and are not used by the dashboard.
 
-To enable **LIVE Cloud AI Providers**, create a `.env` file in the root folder:
+To enable OpenAI analysis, create a `.env` file in the root folder:
 ```env
-# Optional LLM API Key (OpenAI / Gemini / Anthropic)
+# Submitted SmartPoint excerpts are sent to OpenAI
 OPENAI_API_KEY="sk-..."
-
-# ElevenLabs Conversational Voice API (Hackathon Sponsor)
-ELEVENLABS_API_KEY="your-elevenlabs-key"
-ELEVENLABS_VOICE_ID="21m00Tcm4TlvDq8ikWAM"
-
-# Twilio WhatsApp API (For live phone alerts)
-TWILIO_ACCOUNT_SID="your-twilio-sid"
-TWILIO_AUTH_TOKEN="your-twilio-token"
-WHATSAPP_FROM_NUMBER="whatsapp:+14155238886"
-DEFAULT_ALERT_PHONE="+919876543210"
 ```
 
 ---
 
-## 🚀 Tasks for the Next Engineer / AI Assistant
+## 🚀 Safe Extension Principles
 
-If you are continuing work on this repository:
-- [ ] **Task 1 (AirTouch MediaPipe Script):** In `extension/content/airtouch.js`, include the official MediaPipe Hands CDN script tag (`https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js`) to stream actual webcam video frames into `updateLaser(x, y)`.
-- [ ] **Task 2 (Live ElevenLabs Stream):** In `backend/routers/voice_gateway.py`, attach an ElevenLabs bidirectional streaming WebSocket client using the `websockets` library.
-- [ ] **Task 3 (Playwright Swarm Workers):** In `backend/routers/synapse_swarm.py`, install `playwright` (`playwright install chromium`) and write an async worker to launch 3 headless browser contexts in parallel.
-- [ ] **Task 4 (Presentation Video):** Record the 3-minute video pitch following the exact script in `PITCH_VIDEO_SCRIPT.md`.
-- [ ] **Task 5 (PPT Submission):** Paste the contents of `SUBMISSION_DECK.md` into the official wHACKiest PowerPoint template.
+When extending the prototype, use official provider APIs and do not bypass site queues or access controls. Never book or initiate payment without a separate explicit user action. The deck and pitch script are concept drafts; verify every claim against the current implementation before presenting.

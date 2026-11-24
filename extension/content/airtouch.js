@@ -1,6 +1,6 @@
 /**
  * AuraOS Pillar 2: AirTouch (Air Mode)
- * Spatial hands-free gesture tracking & virtual laser beam via Google MediaPipe.
+ * User-controlled pointer simulation for the AirTouch demo.
  */
 
 class AirTouchEngine {
