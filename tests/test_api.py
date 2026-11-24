@@ -74,4 +74,4 @@ if __name__ == "__main__":
     test_pillar3_synapse_swarm()
     test_pillar4_ghost_butler()
     test_pillar5_rewind_memory()
-    print("\n🎉 ALL 5 PILLARS VERIFIED & PASSED!")
+    print("\n✓ Smoke tests passed for endpoints (Pillars 1, 3, 4, 5). AirTouch (Pillar 2) tested manually via browser DOM events.")
