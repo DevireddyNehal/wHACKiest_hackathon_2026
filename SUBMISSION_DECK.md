@@ -1,69 +1,133 @@
-# 📊 wHACKiest 2026 — Official PPT Deck Content
+# 📊 wHACKiest 2026 — Verified Slide Deck (`TeamName_Track2.pptx`)
 > **Track:** Track 02 — *Beyond the Browser*  
-> **File Naming Format:** `TeamName_Track2.pptx` (Upload to Google Drive with permission "Anyone with link can view")  
-> **Official Constraint:** Use the official template without adding extra slides. Paste the exact text below into each slide.
+> **Repository:** https://github.com/DevireddyNehal/wHACKiest_hackathon_2026  
+> **Note:** Every claim in this deck is verified, transparently labeled, and aligned with the actual repository implementation.
 
 ---
 
-## 🟩 SLIDE 1: Cover Slide
-* **Title:** AuraOS — The Autonomous Web Operating System
-* **Subtitle:** Beyond the Browser: Reimagining how humans perceive, navigate, and delegate the web.
-* **Track:** Track 02 — *Beyond the Browser*
-* **Team Name:** [Your Team Name]
-* **College:** Ramaiah Institute of Technology (MSRIT), Bengaluru
-* **Team Members:** [Names & Year/Branch]
+## 🟩 SLIDE 1: COVER & MISSION STATEMENT
+
+* **Slide Number:** `01 / 06`
+* **Title:** **AuraOS**
+* **Subtitle:** *The Autonomous Web Operating System: Reimagining how humans perceive, navigate, and delegate web workflows.*
+* **Track:** Track 02 — *Beyond the Browser* (Tags: `Browser Agents` · `Web Automation` · `Accessibility` · `Search`)
+* **Team Details:**
+  * **Team Name:** `[Your Team Name]`
+  * **Institution:** Department of Computer Science & Engineering, Ramaiah Institute of Technology, Bengaluru
+  * **Team Members:** `[Names & Branches/Years]`
+  * **GitHub Repository:** `https://github.com/DevireddyNehal/wHACKiest_hackathon_2026`
 
 ---
 
-## 🟩 SLIDE 2: Problem Statement & Why Existing Tools Fail
-* **The Core Crisis:**
-  The World Wide Web was built 30 years ago as a static document reader. Today, humans use it as a complex transactional OS, forcing users to act as manual routers—juggling 15+ tabs, battling dark patterns, and doing endless cognitive grunt work.
-* **Why Current Solutions Fail:**
-  1. **Chatbots are Blind & Paralyzed:** ChatGPT/Claude answer text questions, but cannot see or act inside live, dynamic, authenticated web apps.
-  2. **Traditional Screen Readers & Voice Tools are Clunky:** They read raw HTML linearly; asking a voice bot to navigate dynamic Single Page Apps (SPAs) results in severe latency (8–15s lag) and confusion.
-  3. **The Babysitting Exhaustion:** Everyday people waste hours frantically refreshing crashing portals (Tatkal train slots at 10 AM, university exam results, flash sales).
-  4. **Predatory Dark Patterns:** Aggregators and e-commerce platforms intentionally hide convenience fees and auto-renewal traps until the final payment step.
+## 🟩 SLIDE 2: THE PROBLEM: FRAGMENTATION, DECEPTION & DIGITAL FATIGUE
+
+* **Slide Number:** `02 / 06`
+* **Title:** **The Friction of the Modern Web: Cognitive Load, Deception, and Inefficiency**
+
+* **Documented Evidence & Regulatory Context:**
+  * 📌 **Prevalence of Dark Patterns:** In an empirical study of ~11,000 shopping websites, **11.1% (1,254 sites)** deployed deceptive dark patterns across 1,818 instances, with more popular shopping sites found to be more likely to feature them *(Mathur et al., ACM CSCW 2019)*.
+  * 📌 **Regulatory Recognition:** In November 2023, the Indian Ministry of Consumer Affairs (DoCA) formally notified guidelines prohibiting 13 specific dark patterns under the Consumer Protection Act, explicitly including drip pricing, hidden costs, and disguised advertisements.
+  * 📌 **High-Demand Portal Contention:** High-demand drop workflows (such as IRCTC Tatkal ticket openings, entrance exam results, and flash sales) frequently exhaust limited inventory within minutes, leaving everyday users vulnerable to slight network delays, server slowdowns, or input errors.
+  * 📌 **Architectural Overhead in Web Agents:** Traditional visual browser agents process full-page screenshots or raw 300–400KB DOM dumps, which substantially increases token consumption and latency compared to focused, localized element extraction.
+
+* **The Core Structural Problems:**
+  1. **Manual Data Routing:** Routine research (comparing travel, sourcing hardware, evaluating services) forces users to keep 10–15 tabs open simultaneously and manually extract and compare numbers across fragmented layouts.
+  2. **Drip Pricing & Hidden Friction:** Displayed prices routinely omit mandatory convenience fees, baggage rules, or auto-renewal terms until the final checkout screen.
+  3. **The Babysitting Burden:** Users are forced to actively wait on and refresh dynamic portals instead of delegating the wait to an automated assistant.
+  4. **Accessibility Barriers:** Complex, ad-heavy web applications remain high-friction for users with motor tremors, repetitive strain injuries (RSI), or temporary physical limitations.
 
 ---
 
-## 🟩 SLIDE 3: Proposed Solution — AuraOS (The 5 Pillars)
-* **One-Sentence Vision:** AuraOS turns the browser from a passive viewing canvas into an active, multi-modal autonomous execution environment across Time, Space, and Autonomy.
-* **The 5 Pillars:**
-  1. **SmartPoint (Desk Mode):** Hover-to-act micro-comprehension. Analyzes only the 2KB micro-DOM under the cursor to unmask hidden checkout fees and legal traps in <150ms.
-  2. **AirTouch (Air Mode):** Hands-free spatial computing via webcam (Google MediaPipe). Point a virtual laser with your finger, pinch to click, and wave to scroll.
-  3. **SynapseWeb (Multi-Tab Swarm):** Deploys parallel browser workers across competitor sites, uncovering true final prices and presenting a unified 1-click comparison card.
-  4. **GhostButler (The Asynchronous Future):** Background cloud daemon that monitors slots and queues 24/7 while your laptop is closed, dispatching WhatsApp alerts with 1-tap UPI payment links.
-  5. **RewindWeb (Cognitive Memory):** Local-first semantic memory that lets you search concepts across past browsing history and visually roll back page states.
+## 🟩 SLIDE 3: THE SOLUTION — AURAOS (THE 5-PILLAR ARCHITECTURE)
+
+* **Slide Number:** `03 / 06`
+* **Title:** **AuraOS: A Unified Architecture Across Time, Space, and Autonomy**
+* **Core Idea:** *AuraOS decouples web intent and execution from the visual noise of websites, providing tools for immediate inspection, hands-free interaction, and asynchronous delegation.*
+
+* **The 5 Pillars & Realistic Implementation Status:**
+  1. **🖱️ SmartPoint *(Desk Mode — Micro-Comprehension)* [Functional Prototype]**
+     * Hover mouse over any webpage element and press `Alt+S`.
+     * Extracts only the targeted **2KB micro-DOM bounding box**, identifying hidden convenience fees, auto-renewal terms, or complex text in an in-place frosted-glass HUD.
+  2. **🖐️ AirTouch *(Air Mode — Hands-Free Interaction)* [Experimental Prototype]**
+     * Integrates **Google MediaPipe Hands** via standard laptop webcam.
+     * Projects a virtual laser pointer from the index finger with pinch-to-click and palm-scroll handlers for touch-free accessibility.
+  3. **⚡ SynapseWeb *(Multi-Tab Execution)* [Prototype Orchestrator]**
+     * Backend orchestrator that models parallel execution across competitor sites (e.g., direct carrier vs. aggregator).
+     * Synthesizes cross-site data into a single comparison card with an explicit **Consent Shield** halting before payments.
+  4. **🤖 GhostButler *(Asynchronous Delegation)* [Architecture & Notification Prototype]**
+     * Asynchronous background daemon tracking portal availability and dispatching **WhatsApp alerts with 1-tap checkout links**.
+     * *Compliance Boundary:* Operates as an authorized user-notification and monitoring tool; does not perform unauthorized automated booking, ticket scalping, or bot bypasses.
+  5. **🕰️ RewindWeb *(Cognitive Memory)* [In-Memory Search Prototype]**
+     * Client-and-backend index enabling semantic concept queries (*"research paper on LLM memory"*) across previously browsed sessions.
 
 ---
 
-## 🟩 SLIDE 4: System Architecture & Technical Depth
-* **Client-Side (Chrome Manifest V3):**
-  - Content Scripts isolating micro-DOM bounding boxes to achieve 95% token reduction.
-  - Google MediaPipe WebAssembly framework for 30 FPS hand landmark tracking and raycasting.
-  - Frosted-glass floating popover HUD with zero layout shift.
-* **Backend Orchestration (FastAPI & Serverless):**
-  - High-concurrency async endpoints routing micro-DOM analysis and multi-tab swarms.
-  - Asynchronous background scheduler for GhostButler portal monitoring.
-* **Sponsor Technology Integration:**
-  - **ElevenLabs (Hackathon Sponsor):** Integrated via low-latency Conversational Voice WebSockets (`/ws/voice`) for full-duplex spoken feedback and voice interruption.
-  - **AWS (Hackathon Sponsor):** Scalable serverless execution on **AWS Lambda** for background workers, with LLM routing via **AWS Bedrock**.
-  - **Twilio / Meta API:** WhatsApp webhook dispatcher for asynchronous mobile alerts.
+## 🟩 SLIDE 4: TECHNICAL SPECIFICATIONS & SYSTEM PIPELINE
+
+* **Slide Number:** `04 / 06`
+* **Title:** **Engineering Architecture, Protocols, and Technical Scope**
+
+* **Architecture Flow:**
+  ```
+  [User Input: Cursor Hover / Webcam Landmark / Push-to-Talk]
+                               │
+                               ▼
+  [Chrome MV3 Extension] ──(Micro-DOM Slicer: ~2KB)──► [FastAPI Backend :8000]
+                                                             │
+          ┌──────────────────────────────────────────────────┼──────────────────────────────────────────────────┐
+          ▼                                                  ▼                                                  ▼
+  [SmartPoint / Swarm Router]                       [ElevenLabs Gateway]                               [GhostButler Daemon]
+  - <150ms client-side DOM slicing                  - Sub-300ms vendor-quoted                         - Background monitoring loop
+  - Focused ~400-600 token payload                    latency (Turbo v2.5 WebSocket)                   - WhatsApp webhook dispatch
+  ```
+
+* **Accurate Technical Benchmarks:**
+  * **Client-Side Slicing Overhead:** **< 150 ms** for JavaScript to clean, prune SVGs/scripts, and clamp the hovered micro-DOM bounding box to under 2,500 characters. *(Note: Cloud LLM inference latency is additional and depends on the chosen provider).*
+  * **Token Efficiency:** **~400–600 tokens** per micro-DOM query vs. thousands of tokens when transmitting full DOM trees.
+  * **Computer Vision:** Continuous 30 FPS hand landmark tracking using Google MediaPipe WebAssembly.
+  * **Automated Verification:** All 5 core API endpoints pass automated regression testing (`tests/test_api.py`).
+
+* **Sponsor Alignment (wHACKiest 2026):**
+  * **ElevenLabs:** Low-latency conversational speech streaming endpoint (`/ws/voice`) for audio feedback and voice navigation.
+  * **AWS:** Microservices structured for containerized deployment on **AWS App Runner** or serverless execution via **AWS Lambda**.
 
 ---
 
-## 🟩 SLIDE 5: Feasibility, Prototype Demo & Future Roadmap
-* **What We Have Built (Current MVP):**
-  - Fully functional Chrome Manifest V3 Extension with SidePanel Command Center.
-  - Working SmartPoint engine that unmasks hidden fees and dark patterns in real-time.
-  - Operational multi-tab comparison matrix generator.
-  - Live GhostButler WhatsApp alert webhook dispatcher.
-  - Verified test suite with 100% pass rate (`tests/test_api.py`).
-* **Roadmap for 24-Hour Offline Hackathon (Dec 1–2):**
-  - Direct integration with IRCTC / BookMyShow Tatkal session bypass.
-  - Fully local vector embedding storage via IndexedDB for instant client-side Rewind memory.
-  - Biometric passkey integration for seamless "Consent Shield" checkout authorization.
-* **Target Audience & Impact:**
-  - Everyday consumers (protecting against deceptive pricing).
-  - Students & citizens (eliminating portal babysitting and bureaucracy).
-  - Motor-disabled users (providing touch-free, hands-free web autonomy).
+## 🟩 SLIDE 5: COMPETITIVE LANDSCAPE & DIFFERENTIATION
+
+* **Slide Number:** `05 / 06`
+* **Title:** **Competitive Landscape: How AuraOS Differentiates**
+
+* **Comparative Analysis:**
+
+| Dimension | Claude in Chrome *(Anthropic)* | Coupon Extensions *(Honey, etc.)* | Web Monitors *(Visualping)* | Apple Vision Pro *(Safari)* | **AuraOS (Ours)** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Primary Interaction** | Full-browser agent across tabs | Script injection at cart checkout | Scheduled page screenshot diffs | Eye/hand tracking in headset | **Micro-DOM Lens + Spatial AirTouch** |
+| **Hardware Required** | Standard PC | Standard PC | Cloud Server | **\$3,499 Headset** | **Zero Hardware (Standard Laptop Webcam)** |
+| **Multi-Site Synthesis** | Yes (Agentic navigation) | ❌ Single checkout only | ❌ None | ❌ Single active window | **✅ Unified Comparison Card** |
+| **Asynchronous Handoff**| ❌ Requires active session | ❌ Inactive | ⚠️ Email alerts (passive) | ❌ Inactive when headset off | **✅ Asynchronous WhatsApp Alert** |
+| **Comprehension Mode** | Full-page visual analysis | Rule-based coupon matching | Pixel change detection | Standard web display | **In-place micro-DOM inspection** |
+
+* **Defensible Positioning:**
+  * While advanced general agents like *Claude in Chrome* navigate websites via full visual loops, *AuraOS* specializes in **targeted micro-DOM comprehension (inspecting specific components on hover)**, **hands-free webcam gesture control**, and **asynchronous mobile alert handoff**.
+
+---
+
+## 🟩 SLIDE 6: ETHICAL BOUNDARIES, FUTURE ROADMAP & PROPOSED SCOPE
+
+* **Slide Number:** `06 / 06`
+* **Title:** **Compliance Boundaries, Future Scope, and Proposed Roadmap**
+
+* **Compliance & Technical Boundaries (Direct Defense for Judges):**
+  * **Active Viewing vs. Background Monitoring:**
+    * *SmartPoint & AirTouch* operate strictly within the user's active, authenticated browser tab, analyzing the specific element the user inspects.
+    * *GhostButler* is designed strictly as a user-configured availability tracker that notifies the human user to take action, deliberately avoiding automated CAPTCHA solving, credential stuffing, or platform ToS violations.
+  * **Local Privacy:** Micro-DOM extraction and history search are designed to run locally or via direct API connections without third-party data harvesting.
+
+* **Proposed Future Roadmap (Subject to Post-Hackathon Development):**
+  * **Phase 1 (Short-Term):** Migrate RewindWeb storage to a client-side WebAssembly vector engine (DuckDB/Wasm or IndexedDB) for fully offline, zero-latency local memory.
+  * **Phase 2 (Medium-Term):** Expand AirTouch gesture sensitivity profiles to assist users with motor impairments in rehabilitation and assistive settings.
+  * **Phase 3 (Long-Term):** Enterprise portal assistant: helping administrative users navigate legacy ERP and compliance forms that lack public APIs.
+
+* **Proposed Business Model (Theoretical Projections):**
+  * **Freemium B2C Model:** Free core desktop extension (SmartPoint + local RewindWeb); optional subscription tier (proposed at ₹299/mo) to offset cloud compute for continuous background monitoring.
