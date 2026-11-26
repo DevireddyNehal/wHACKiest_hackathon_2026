@@ -50,7 +50,7 @@ wHACKiest_2026_hackathon/
 │   │   ├── synapse_swarm.py       # POST /api/swarm/execute
 │   │   ├── ghost_butler.py        # GET/POST /api/butler/missions & trigger-demo
 │   │   ├── rewind_memory.py       # POST /api/memory/search & history
-│   │   └── voice_gateway.py       # WS /ws/voice (bidirectional speech stream)
+│   │   └── voice_gateway.py       # Local Vosk WS /ws/speech and allowlisted voice commands
 │   └── services/
 │       ├── llm_service.py         # LLM router (OpenAI/Gemini + realistic mock engine)
 │       ├── voice_service.py       # ElevenLabs API integration + mock logger
@@ -91,6 +91,9 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 python tests/test_api.py
 ```
 The tests cover the dashboard, bounded SmartPoint context, simulated Synapse results, GhostButler confirmation, and explicit RewindWeb capture.
+
+### Voice agent
+Install the offline model with `python backend/download_voice_model.py` before using the microphone locally. Click **Start listening**, speak one short command, then pause. AuraOS shows the transcript and a plain-language interpretation; nothing runs until you confirm it. If the words look wrong, cancel and edit the transcript or use a typed command. The microphone audio is processed locally by the AuraOS server and is not sent to a speech provider.
 
 ---
 

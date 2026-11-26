@@ -100,21 +100,21 @@ The dashboard works without the Chrome extension. Loading `extension/` in Chrome
 
 ### Voice commands
 
-On the dashboard, click **Start listening** and say one short command, or type the same command and choose **Run command**. Try “open SmartPoint”, “run comparison”, “analyze this snippet”, “turn on AirTouch”, “search notes for hackathon”, or “scroll down”. Microphone permission and a secure page (HTTPS or localhost) are required; if microphone access is unavailable, the typed command bar still works.
+On the dashboard, click **Start listening** and say one short command in your own words. Try “Could you open AirTouch?”, “please show SynapseWeb”, “run a comparison”, “search my notes for hackathon”, or “scroll down”. AuraOS compares normal recognition with a command-focused vocabulary pass, while preserving the normal transcript for open-ended searches. It shows what it heard and waits for your on-screen confirmation before acting; if a phrase is not understood, edit the transcript or use a typed command.
 
-The backend uses the small offline Vosk model. Install it once with `python backend/download_voice_model.py`, then restart the backend. Audio is streamed to your AuraOS server for local recognition and is not sent to a speech provider. Recognition is one command at a time. Command handling uses a small allowlist, and voice cannot trigger reminder alerts, bookings, payments, or messages. Spoken replies can be turned off in the dashboard. On a hosted service, install the model during deployment or set `VOSK_MODEL_PATH`; typed commands remain available if the model is missing.
+The backend uses the small offline Vosk model. Install it once with `python backend/download_voice_model.py`, then restart the backend. Audio is streamed to your AuraOS server for local recognition and is not sent to a speech provider. Recognition is one command at a time. Command handling uses a small allowlist; voice cannot trigger reminder alerts, bookings, payments, or messages. Spoken replies can be turned off in the dashboard. On a hosted service, install the model during deployment or set `VOSK_MODEL_PATH`; typed commands remain available if the model is missing.
 
 The dashboard header shows API and voice-server status; click **Check server** to refresh the connection check.
 
 ### Publish a shareable demo with Render
 
-The repository includes a Render Blueprint in `render.yaml` for deploying the dashboard and FastAPI backend together. Keep the GitHub repository private and grant Render access to it:
+The repository includes a Render Blueprint in `render.yaml` for deploying the dashboard and FastAPI backend together:
 
 1. Push the deployment config and app changes to the GitHub `main` branch.
-2. In Render, choose **New → Blueprint**, connect the private GitHub repository, and select `main`.
+2. In Render, choose **New → Blueprint**, connect the repository (or enter its public URL), and select `main`.
 3. Review the `auraos-demo` web service and deploy it. Render will provide a public `onrender.com` URL to share.
 
-The service uses demo/mock integrations and requires no API keys. The free instance may sleep when idle, so the first visit after inactivity can take longer. Reminder templates stay in process memory. Saved notes are written to `data/rewind_notes.json` on that service and can disappear if the host disk is ephemeral.
+The service uses demo/mock integrations and requires no API keys. The free instance may sleep when idle, so the first visit after inactivity can take 50 seconds or longer. Reminder templates stay in process memory. Saved notes are written to `data/rewind_notes.json` on that service and can disappear if the host disk is ephemeral.
 
 ### 2. Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.

@@ -95,11 +95,27 @@ def test_synapse_is_explicitly_simulated():
 
 
 def test_voice_commands_are_bounded_and_allowlisted():
+    from backend.routers.voice_gateway import choose_recognized_transcript
+
     navigation = client.post(
         "/api/voice/command", json={"command": "Open the SynapseWeb screen!"}
     )
     assert navigation.status_code == 200
     assert navigation.json()["action"] == {"type": "navigate", "screen": "synapse"}
+
+    natural_navigation = client.post(
+        "/api/voice/command",
+        json={"command": "Could you please open the Air Touch page?"},
+    ).json()
+    assert natural_navigation["action"] == {"type": "navigate", "screen": "airtouch"}
+
+    natural_comparison = client.post(
+        "/api/voice/command", json={"command": "Can you run a comparison?"}
+    ).json()
+    assert natural_comparison["action"] == {
+        "type": "run_comparison",
+        "screen": "synapse",
+    }
 
     search = client.post(
         "/api/voice/command", json={"command": "Search notes for hackathon"}
@@ -114,6 +130,12 @@ def test_voice_commands_are_bounded_and_allowlisted():
     ).json()
     assert singular_search["action"]["query"] == "llm"
 
+    open_ended_search = client.post(
+        "/api/voice/command",
+        json={"command": "Search my notes for Project Atlas"},
+    ).json()
+    assert open_ended_search["action"]["query"] == "project atlas"
+
     comparison = client.post(
         "/api/voice/command", json={"command": "run a comparison"}
     ).json()
@@ -123,6 +145,13 @@ def test_voice_commands_are_bounded_and_allowlisted():
         "/api/voice/command", json={"command": "analyze the snippet"}
     ).json()
     assert snippet["action"] == {"type": "analyze_snippet", "screen": "smartpoint"}
+
+    assert choose_recognized_transcript(
+        "please shows and apps web", "please show synapse web"
+    ) == "please show synapse web"
+    assert choose_recognized_transcript(
+        "search my notes for project atlas", "search my notes for [unk]"
+    ) == "search my notes for project atlas"
 
     reminder = client.post(
         "/api/voice/command", json={"command": "Trigger demo alert"}

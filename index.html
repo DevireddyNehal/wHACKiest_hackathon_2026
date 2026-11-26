@@ -64,6 +64,10 @@
     .voice-agent .status-line[data-state="error"] { color: var(--red); }
     .voice-agent .status-line[data-state="success"] { color: var(--mint); }
     .voice-transcript { min-height: 16px; }
+    .voice-confirmation { margin-top: 10px; padding: 11px; border: 1px solid #536a5e; border-radius: 9px; background: #19241f; }
+    .voice-confirmation[hidden] { display: none; }
+    .voice-confirmation p { margin: 0 0 9px; color: #dcebe1; font-size: 12px; line-height: 1.5; }
+    .voice-confirmation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .voice-help { margin-top: 9px; color: #a7adbd; font-size: 10px; }
     .voice-help summary { color: var(--mint); cursor: pointer; font-weight: 700; }
     .voice-help p { margin: 7px 0 0; }
@@ -244,21 +248,28 @@
 
       <section class="voice-agent" aria-labelledby="voice-agent-title">
         <div class="voice-agent-head">
-          <div><h2 id="voice-agent-title">Voice agent</h2><p>Give a short command to navigate or run a safe demo action.</p></div>
+          <div><h2 id="voice-agent-title">Voice agent</h2><p>Speak naturally. AuraOS will repeat what it heard and wait for your confirmation.</p></div>
           <button class="btn primary" id="voice-listen" type="button" aria-pressed="false">Start listening</button>
         </div>
         <form class="voice-controls" id="voice-command-form">
           <label class="sr-only" for="voice-command-input">Type a command</label>
-          <input id="voice-command-input" maxlength="250" placeholder="Try “open SynapseWeb” or “search notes for hackathon”" autocomplete="off">
+          <input id="voice-command-input" maxlength="250" placeholder="Try “Could you open AirTouch?”" autocomplete="off">
           <button class="btn" id="voice-command-submit" type="submit">Run command</button>
           <label class="voice-speak-toggle"><input id="voice-speak" type="checkbox" checked> Speak replies</label>
         </form>
         <p class="status-line" id="voice-status" role="status" aria-live="polite">Microphone is off. Type a command or start listening.</p>
-        <p class="hint voice-transcript" id="voice-transcript" aria-live="polite">Commands only use the words you say; the page does not capture surrounding content.</p>
+        <p class="hint voice-transcript" id="voice-transcript" aria-live="polite">After speaking, review the transcript. You can edit it before running a command.</p>
+        <div class="voice-confirmation" id="voice-confirmation" role="group" aria-labelledby="voice-confirmation-text" hidden>
+          <p id="voice-confirmation-text"></p>
+          <div class="voice-confirmation-actions">
+            <button class="btn" id="voice-confirm-button" type="button">Yes, run this</button>
+            <button class="btn subtle" id="voice-cancel-button" type="button">No, let me edit</button>
+          </div>
+        </div>
         <details class="voice-help">
           <summary>Commands and privacy</summary>
-          <p>Try “open SmartPoint”, “run comparison”, “analyze this snippet”, “turn on AirTouch”, “search notes for LLM”, or “scroll down”.</p>
-          <p>The microphone starts only after you click. Audio is streamed securely to the AuraOS backend and recognized locally; it is not sent to a speech provider. Reminder alerts still require manual confirmation, and voice cannot book, pay, or send messages.</p>
+          <p>Speak naturally: “Could you open AirTouch?”, “please show SynapseWeb”, “run a comparison”, “search my notes for LLM”, or “scroll down”. AuraOS shows the transcript and asks you to confirm before acting.</p>
+          <p>The microphone starts only after you click. Audio is streamed securely to the AuraOS backend and recognized locally; it is not sent to a speech provider. Check the transcript and confirm before any voice action runs. Voice cannot book, pay, or send messages.</p>
         </details>
       </section>
 
@@ -513,6 +524,10 @@
       const status = byId("voice-status");
       const transcript = byId("voice-transcript");
       const speakToggle = byId("voice-speak");
+      const confirmation = byId("voice-confirmation");
+      const confirmationText = byId("voice-confirmation-text");
+      const confirmButton = byId("voice-confirm-button");
+      const cancelButton = byId("voice-cancel-button");
       const audioSupported = Boolean(
         window.isSecureContext &&
         navigator.mediaDevices &&
@@ -529,6 +544,7 @@
       let activeSource = null;
       let activeMute = null;
       let listenTimeout = null;
+      let pendingVoiceCommand = null;
 
       function setVoiceStatus(message, state = "") {
         status.textContent = message;
@@ -614,42 +630,73 @@
         window.speechSynthesis.speak(utterance);
       }
 
-      async function runCommand(rawCommand) {
+      function clearVoiceConfirmation() {
+        pendingVoiceCommand = null;
+        confirmation.hidden = true;
+        confirmationText.textContent = "";
+      }
+
+      async function executeParsedCommand(result) {
+        const action = result.action || { type: "none" };
+        if (action.type === "navigate") {
+          showScreen(action.screen, true);
+        } else if (action.type === "run_comparison") {
+          showScreen(action.screen, true);
+          byId("swarm-button").click();
+        } else if (action.type === "analyze_snippet") {
+          showScreen(action.screen, true);
+          byId("analyze-button").click();
+        } else if (action.type === "enable_pointer") {
+          showScreen(action.screen, true);
+          if (!airEnabled) byId("air-toggle").click();
+        } else if (action.type === "search_memory") {
+          showScreen(action.screen, true);
+          commandInput.value = action.query || "";
+          await searchMemories(commandInput.value);
+        } else if (action.type === "scroll") {
+          if (action.direction === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+          else window.scrollBy({ top: action.direction === "down" ? 420 : -420, behavior: "smooth" });
+        } else if (action.type === "confirmation_required") {
+          showScreen(action.screen, true);
+        }
+        setVoiceStatus(result.reply, result.intent === "unknown" ? "error" : "success");
+        speakReply(result.reply);
+      }
+
+      async function runCommand(rawCommand, source = "typed", parsedResult = null) {
         const command = rawCommand.trim().slice(0, 250);
         if (!command || commandInFlight) return;
+        if (source === "typed") clearVoiceConfirmation();
         commandInFlight = true;
         setPhase("processing");
         transcript.textContent = `Command: ${command}`;
         setVoiceStatus("Understanding your command…");
         try {
-          const result = await api("/api/voice/command", {
+          const result = parsedResult || await api("/api/voice/command", {
             method: "POST",
             body: JSON.stringify({ command })
           });
-          const action = result.action || { type: "none" };
-          if (action.type === "navigate") {
-            showScreen(action.screen, true);
-          } else if (action.type === "run_comparison") {
-            showScreen(action.screen, true);
-            byId("swarm-button").click();
-          } else if (action.type === "analyze_snippet") {
-            showScreen(action.screen, true);
-            byId("analyze-button").click();
-          } else if (action.type === "enable_pointer") {
-            showScreen(action.screen, true);
-            if (!airEnabled) byId("air-toggle").click();
-          } else if (action.type === "search_memory") {
-            showScreen(action.screen, true);
-            commandInput.value = action.query || "";
-            await searchMemories(commandInput.value);
-          } else if (action.type === "scroll") {
-            if (action.direction === "top") window.scrollTo({ top: 0, behavior: "smooth" });
-            else window.scrollBy({ top: action.direction === "down" ? 420 : -420, behavior: "smooth" });
-          } else if (action.type === "confirmation_required") {
-            showScreen(action.screen, true);
+          if (source === "voice") {
+            commandInput.value = command;
+            transcript.textContent = `I heard: “${command}.”`;
+            if (result.intent === "unknown") {
+              clearVoiceConfirmation();
+              setVoiceStatus(
+                "I couldn't match that to a safe command. Edit the words above or try one of the examples.",
+                "error"
+              );
+              speakReply("I heard " + command + ", but could not match it to a command. Please check the words on screen.");
+              return;
+            }
+            pendingVoiceCommand = { command, result };
+            confirmationText.textContent = `I heard “${command}.” ${result.reply}`;
+            confirmation.hidden = false;
+            setVoiceStatus("Nothing has run yet. Confirm, cancel, or edit the words above.", "success");
+            speakReply(`I heard ${command}. ${result.reply} Please confirm on screen before I act.`);
+            return;
           }
-          setVoiceStatus(result.reply, result.intent === "unknown" ? "error" : "success");
-          speakReply(result.reply);
+          clearVoiceConfirmation();
+          await executeParsedCommand(result);
         } catch (error) {
           setVoiceStatus(error.message || "The command failed. Please try again.", "error");
         } finally {
@@ -658,6 +705,19 @@
         }
       }
 
+      confirmButton.addEventListener("click", () => {
+        if (!pendingVoiceCommand || commandInFlight) return;
+        const pending = pendingVoiceCommand;
+        clearVoiceConfirmation();
+        runCommand(pending.command, "confirmed", pending.result);
+      });
+
+      cancelButton.addEventListener("click", () => {
+        clearVoiceConfirmation();
+        setVoiceStatus("Cancelled. Edit the transcript or start a new command.");
+        commandInput.focus();
+      });
+
       commandForm.addEventListener("submit", (event) => {
         event.preventDefault();
         runCommand(commandInput.value);
@@ -665,6 +725,7 @@
 
       async function startListening() {
         if (phase !== "idle" || !audioSupported) return;
+        clearVoiceConfirmation();
         setPhase("starting");
         setVoiceStatus("Requesting microphone access…");
         try {
@@ -754,8 +815,7 @@
               const command = message.text.trim();
               stopCapture();
               setPhase("idle");
-              transcript.textContent = `Recognized: ${command}`;
-              runCommand(command);
+              runCommand(command, "voice");
             } else if (message.type === "error") {
               stopCapture();
               setPhase("idle");

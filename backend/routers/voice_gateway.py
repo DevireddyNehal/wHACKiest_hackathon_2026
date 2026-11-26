@@ -32,6 +32,37 @@ if SetLogLevel:
     SetLogLevel(-1)
 
 speech_model = Model(str(MODEL_PATH)) if Model and MODEL_PATH.is_dir() else None
+VOICE_COMMAND_GRAMMAR = json.dumps([
+    "open smart point",
+    "open the smart point",
+    "please open smart point",
+    "go to smart point",
+    "show smart point",
+    "open air touch",
+    "open the air touch",
+    "could you open the air touch page",
+    "turn on air touch",
+    "enable air mode",
+    "show synapse web",
+    "please show synapse web",
+    "open synapse web",
+    "open ghost butler",
+    "open rewind web",
+    "run comparison",
+    "run a comparison",
+    "can you run a comparison",
+    "compare options",
+    "analyze this snippet",
+    "analyze the selected text",
+    "explain this snippet",
+    "search notes for [unk]",
+    "search my notes for [unk]",
+    "find memory for [unk]",
+    "scroll down",
+    "scroll up",
+    "go to top",
+    "[unk]",
+])
 
 
 class VoiceCommandRequest(BaseModel):
@@ -49,6 +80,13 @@ class VoiceCommandRequest(BaseModel):
 def interpret_command(command: str) -> Dict[str, Any]:
     text = re.sub(r"\s+", " ", command.lower()).strip()
     text = re.sub(r"[.!?,]+$", "", text)
+    text = re.sub(
+        r"^(?:(?:(?:hey\s+)?aura\s+os|assistant|please|can you|could you|"
+        r"would you|will you|i want you to)\s+)+",
+        "",
+        text,
+    )
+    text = re.sub(r"(?:\s+(?:please|now|for me))+$", "", text)
 
     if text in {"help", "commands", "what can you do"}:
         return {
@@ -61,8 +99,9 @@ def interpret_command(command: str) -> Dict[str, Any]:
         }
 
     search_match = re.fullmatch(
-        r"(?:search|find|look up)\s+(?:(?:my|saved)\s+)?"
-        r"(?:memory|notes?)(?:\s+(?:for|about))?(?:\s+(.+))?",
+        r"(?:search|find|look up|look for)\s+"
+        r"(?:(?:my|saved)\s+)?(?:memory|notes?)?"
+        r"(?:\s+(?:for|about))?(?:\s+(.+))?",
         text,
     )
     if search_match:
@@ -76,7 +115,8 @@ def interpret_command(command: str) -> Dict[str, Any]:
     if re.fullmatch(
         r"(?:run|start|execute|do)\s+(?:(?:the|a|an)\s+)?"
         r"(?:(?:sample|demo)\s+)?comparison(?:\s+now)?"
-        r"|compare\s+(?:(?:the|some)\s+)?(?:sample\s+)?options",
+        r"|compare\s+(?:(?:the|some|my)\s+)?(?:sample\s+)?"
+        r"(?:options|flights?|fares?|prices?)",
         text,
     ):
         return {
@@ -87,7 +127,7 @@ def interpret_command(command: str) -> Dict[str, Any]:
 
     if re.fullmatch(
         r"(?:analyze|analyse|explain|check)\s+(?:(?:this|the|that)\s+)?"
-        r"(?:snippet|selected text|charges)",
+        r"(?:snippet|selected text|text|excerpt|charges)",
         text,
     ):
         return {
@@ -98,7 +138,7 @@ def interpret_command(command: str) -> Dict[str, Any]:
 
     if re.fullmatch(
         r"(?:turn on|enable|start|activate)\s+(?:the\s+)?"
-        r"(?:airtouch|air touch|air mode|pointer demo)(?: mode)?",
+        r"(?:airtouch|air touch|air mode|pointer demo|pointer)(?: mode)?",
         text,
     ):
         return {
@@ -127,7 +167,8 @@ def interpret_command(command: str) -> Dict[str, Any]:
         }
 
     if (
-        re.search(r"\b(?:create|set up|add)\s+(?:a\s+)?reminder\b", text)
+        re.search(r"\b(?:create|set up|add|set)\s+(?:a\s+)?reminder\b", text)
+        or re.search(r"\bremind me\b", text)
         or re.search(r"\b(?:preview|trigger|send)\s+(?:the\s+)?(?:demo\s+)?alert\b", text)
     ):
         return {
@@ -195,6 +236,24 @@ def interpret_command(command: str) -> Dict[str, Any]:
     }
 
 
+def choose_recognized_transcript(unconstrained: str, command_biased: str) -> str:
+    """Prefer command-biased recognition only when it preserves the user's intent."""
+    baseline = unconstrained.strip()
+    biased = command_biased.strip()
+    if not biased or "[unk]" in biased.lower():
+        return baseline
+    if not baseline:
+        return biased
+
+    baseline_intent = interpret_command(baseline)["intent"]
+    biased_intent = interpret_command(biased)["intent"]
+    if biased_intent != "unknown" and baseline_intent == "unknown":
+        return biased
+    if biased_intent == baseline_intent and biased_intent != "search_memory":
+        return biased
+    return baseline
+
+
 @command_router.post("/command")
 async def handle_voice_command(request: VoiceCommandRequest) -> Dict[str, Any]:
     """Turn a short transcript into a safe, allowlisted dashboard action."""
@@ -223,7 +282,11 @@ async def local_speech_socket(websocket: WebSocket):
         return
 
     recognizer = KaldiRecognizer(speech_model, 16000)
+    command_recognizer = KaldiRecognizer(
+        speech_model, 16000, VOICE_COMMAND_GRAMMAR
+    )
     last_partial = ""
+    command_segments = []
     received_bytes = 0
     await websocket.send_json({"type": "ready", "engine": "local-vosk"})
 
@@ -248,14 +311,31 @@ async def local_speech_socket(websocket: WebSocket):
                 await websocket.close(code=1009)
                 return
 
+            command_completed = command_recognizer.AcceptWaveform(audio)
+            if command_completed:
+                command_text = json.loads(command_recognizer.Result()).get("text", "")
+                if command_text:
+                    command_segments.append(command_text)
+
             if recognizer.AcceptWaveform(audio):
                 result = json.loads(recognizer.Result())
                 last_partial = ""
-                if result.get("text"):
-                    await websocket.send_json({"type": "final", "text": result["text"]})
+                command_tail = json.loads(command_recognizer.FinalResult()).get("text", "")
+                if command_tail:
+                    command_segments.append(command_tail)
+                command_biased = " ".join(command_segments)
+                text = choose_recognized_transcript(
+                    result.get("text", ""), command_biased
+                )
+                if text:
+                    await websocket.send_json({"type": "final", "text": text})
             else:
                 result = json.loads(recognizer.PartialResult())
                 partial = result.get("partial", "")
+                command_partial = json.loads(command_recognizer.PartialResult()).get(
+                    "partial", ""
+                )
+                partial = choose_recognized_transcript(partial, command_partial)
                 if partial and partial != last_partial:
                     last_partial = partial
                     await websocket.send_json({"type": "partial", "text": partial})
