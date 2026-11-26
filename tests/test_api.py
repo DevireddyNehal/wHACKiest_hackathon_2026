@@ -1,7 +1,11 @@
 """Focused API smoke and safety tests for the AuraOS demo."""
 
+import os
 import sys
+import tempfile
 from pathlib import Path
+
+os.environ["AURAOS_DATA_DIR"] = tempfile.mkdtemp(prefix="auraos-test-")
 
 from fastapi.testclient import TestClient
 
@@ -62,6 +66,32 @@ def test_synapse_is_explicitly_simulated():
     assert client.post(
         "/api/swarm/execute", json={"goal": " ", "target_sites": ["Site A"]}
     ).status_code == 422
+    pasted = client.post(
+        "/api/swarm/execute",
+        json={
+            "goal": "Compare two pasted fares",
+            "listings": [
+                "Direct carrier\nBase fare ₹4,800",
+                "Marketplace\nBase fare ₹4,899 · convenience fee ₹250",
+            ],
+        },
+    )
+    assert pasted.status_code == 200
+    compared = pasted.json()
+    assert compared["execution_mode"] == "FROM_USER_TEXT"
+    assert compared["comparison_source"] == "USER_TEXT"
+    assert compared["prefilled_cart_ready"] is False
+    assert "₹6,849" not in str(compared)
+    assert "₹250" in str(compared)
+    assert "No websites were opened" in compared["message"]
+    assert "checkout total" in " ".join(
+        row["not_in_text"] for row in compared["comparison_matrix"]
+    )
+    assert compared["winner"]["platform"] == "Direct carrier"
+    assert client.post(
+        "/api/swarm/execute",
+        json={"goal": "Too many snippets", "listings": ["a", "b", "c", "d"]},
+    ).status_code == 422
 
 
 def test_voice_commands_are_bounded_and_allowlisted():
@@ -79,6 +109,20 @@ def test_voice_commands_are_bounded_and_allowlisted():
         "screen": "rewind",
         "query": "hackathon",
     }
+    singular_search = client.post(
+        "/api/voice/command", json={"command": "find memory for LLM"}
+    ).json()
+    assert singular_search["action"]["query"] == "llm"
+
+    comparison = client.post(
+        "/api/voice/command", json={"command": "run a comparison"}
+    ).json()
+    assert comparison["action"] == {"type": "run_comparison", "screen": "synapse"}
+
+    snippet = client.post(
+        "/api/voice/command", json={"command": "analyze the snippet"}
+    ).json()
+    assert snippet["action"] == {"type": "analyze_snippet", "screen": "smartpoint"}
 
     reminder = client.post(
         "/api/voice/command", json={"command": "Trigger demo alert"}
@@ -99,6 +143,22 @@ def test_voice_commands_are_bounded_and_allowlisted():
     assert client.post(
         "/api/voice/command", json={"command": "x" * 251}
     ).status_code == 422
+
+
+def test_local_speech_service_reports_engine_state():
+    status = client.get("/api/voice/status")
+    assert status.status_code == 200
+    data = status.json()
+    assert data["available"] is (data["engine"] == "local-vosk")
+    assert data["engine"] in {"local-vosk", "typed-command-fallback"}
+
+    with client.websocket_connect("/ws/speech") as websocket:
+        message = websocket.receive_json()
+        if data["available"]:
+            assert message == {"type": "ready", "engine": "local-vosk"}
+        else:
+            assert message["type"] == "error"
+            assert "typed commands" in message["message"]
 
 
 def test_ghostbutler_requires_confirmation_and_never_books():
@@ -158,6 +218,17 @@ def test_rewind_has_empty_state_and_explicit_capture():
     assert found.json()["results_count"] == 1
     assert found.json()["results"][0]["demo"] is False
 
+    from backend.routers import rewind_memory
+
+    rewind_memory.MEMORY_INDEX[:] = [
+        item for item in rewind_memory.MEMORY_INDEX if item.get("demo")
+    ]
+    assert client.post("/api/memory/search", json={"query": "memory test"}).json()["results"] == []
+    rewind_memory.reload_saved_notes()
+    reloaded = client.post("/api/memory/search", json={"query": "memory test"}).json()
+    assert reloaded["results_count"] == 1
+    assert reloaded["storage"] == "LOCAL_FILE"
+
 
 if __name__ == "__main__":
     tests = [
@@ -165,6 +236,7 @@ if __name__ == "__main__":
         test_smartpoint_uses_only_submitted_context,
         test_synapse_is_explicitly_simulated,
         test_voice_commands_are_bounded_and_allowlisted,
+        test_local_speech_service_reports_engine_state,
         test_ghostbutler_requires_confirmation_and_never_books,
         test_rewind_has_empty_state_and_explicit_capture,
     ]

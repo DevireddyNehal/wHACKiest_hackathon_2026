@@ -7,11 +7,11 @@
 ## 🧭 Project Mental Model
 
 AuraOS is a **wHACKiest 2026 (Track 02: Beyond the Browser) prototype** with five connected demo tools:
-1. **SmartPoint:** User-submitted text analysis; the extension can send a small selected element on request.
+1. **SmartPoint:** User-submitted or highlighted text analysis; the extension can send a small selected element on request and save it to RewindWeb.
 2. **AirTouch:** Pointer-based laser, simulated pinch selection, and simulated scroll; no camera tracking.
-3. **SynapseWeb:** Illustrative comparison data; no websites are queried.
-4. **GhostButler:** In-memory reminder templates with an optional due time and a manually confirmed in-app alert preview only.
-5. **RewindWeb:** Explicitly saved text notes and keyword search in process memory; no browser-history capture.
+3. **SynapseWeb:** Comparison of up to three pasted listing snippets, or a labeled fictional sample when no snippets are provided. No websites are queried.
+4. **GhostButler:** In-memory reminder templates with an optional due time. After confirmation, the open dashboard can show an in-app preview and a browser notification.
+5. **RewindWeb:** Explicitly saved text notes and keyword search. Saved notes persist in `data/rewind_notes.json`; no browser-history capture.
 
 ---
 

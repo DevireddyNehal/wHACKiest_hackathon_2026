@@ -168,6 +168,9 @@
     .timeline-label { display: flex; justify-content: space-between; gap: 12px; color: #aeb3c2; font-size: 10px; }
     input[type="range"] { min-height: auto; margin: 11px 0 0; accent-color: var(--mint); }
     .empty-state { padding: 22px 10px; border: 1px dashed #3b3f4c; border-radius: 10px; color: #81879a; font-size: 11px; text-align: center; }
+    .practice-card { margin: 0 0 12px; padding: 12px; border: 1px dashed #3d4a44; border-radius: 10px; background: #161b18; }
+    .practice-card strong { display: block; margin-bottom: 4px; color: #9fe7c8; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+    .practice-card p { margin: 0; color: #d7e2db; font-size: 12px; line-height: 1.5; }
     .save-form { margin-top: 14px; padding: 15px; border: 1px solid #303443; border-radius: 11px; background: #13161f; }
     .save-form h3 { margin: 0; font-size: 12px; }
     .footer { margin-top: 48px; padding-top: 17px; border-top: 1px solid var(--line); color: #747a8d; font-size: 10px; }
@@ -236,7 +239,7 @@
             <div class="breadcrumb">Workspace <span aria-hidden="true">/</span> <span id="breadcrumb-current">Overview</span></div>
             <button class="btn subtle" id="back-overview" type="button" hidden>← Overview</button>
           </div>
-        <div class="connection" role="status"><span class="connection-dot" id="backend-dot"></span><span id="backend-label">Connecting to local demo…</span></div>
+        <div class="connection" role="status"><span class="connection-dot" id="backend-dot"></span><span id="backend-label">Connecting to AuraOS server…</span><button class="btn subtle" id="server-refresh" type="button" aria-label="Check server connection">Check server</button></div>
       </div>
 
       <section class="voice-agent" aria-labelledby="voice-agent-title">
@@ -255,7 +258,7 @@
         <details class="voice-help">
           <summary>Commands and privacy</summary>
           <p>Try “open SmartPoint”, “run comparison”, “analyze this snippet”, “turn on AirTouch”, “search notes for LLM”, or “scroll down”.</p>
-          <p>The microphone starts only after you click. Browser speech recognition may process audio through your browser provider; only the recognized command is sent to AuraOS. Reminder alerts still require manual confirmation, and voice cannot book, pay, or send messages.</p>
+          <p>The microphone starts only after you click. Audio is streamed securely to the AuraOS backend and recognized locally; it is not sent to a speech provider. Reminder alerts still require manual confirmation, and voice cannot book, pay, or send messages.</p>
         </details>
       </section>
 
@@ -289,16 +292,21 @@
 
       <section id="smartpoint" class="screen" aria-labelledby="smartpoint-title" hidden>
         <div class="section-head"><div><h2 id="smartpoint-title">Understand what’s in front of you</h2><p>Share a small excerpt. AuraOS will explain only the text you provide.</p></div><span class="section-index">01 / SMARTPOINT</span></div>
-        <details class="demo-guide"><summary>How to demo SmartPoint</summary><ol><li>Edit the selected text and your question, or keep the sample.</li><li>Click <strong>Analyze this snippet</strong> to see a bounded explanation.</li><li>In the optional extension, hover over an element and press <kbd>Alt+S</kbd>; no full-page content is sent.</li></ol></details>
+        <details class="demo-guide"><summary>How to demo SmartPoint</summary><ol><li>Highlight a line in the practice card, then click <strong>Use highlighted text</strong>.</li><li>Click <strong>Analyze this snippet</strong>. The result uses only that text and says when a price cannot be verified.</li><li>Click <strong>Save this to Rewind</strong>, then open RewindWeb. On another page, the extension does the same with <kbd>Alt+S</kbd>.</li></ol></details>
         <div class="panel panel-grid">
           <div>
             <h3 class="panel-title"><span class="pillar-number">01</span>SmartPoint <span class="tag">Desk mode</span></h3>
-            <p class="panel-copy">A micro-comprehension demo for confusing terms, prices, or page copy. No browser content is captured automatically.</p>
+            <p class="panel-copy">Highlight a line, or paste one. AuraOS explains only that text and says when it is too thin to trust a price.</p>
+            <div class="practice-card">
+              <strong>Practice page line</strong>
+              <p id="smart-practice">Bengaluru → Delhi · Base fare ₹4,899 · Convenience fee ₹349 · Seat selection ₹450 (optional) · “Only 2 seats left at this price”</p>
+            </div>
             <label class="field-label" for="smart-text">Selected text</label>
             <textarea id="smart-text" maxlength="2500">Base fare ₹4,899 · convenience fee ₹250 · optional seat selection ₹400</textarea>
             <label class="field-label" for="smart-prompt">What should I look for?</label>
             <input id="smart-prompt" maxlength="300" value="Explain the charges and what is optional">
-            <div class="button-row"><button class="btn primary" id="analyze-button" type="button">Analyze this snippet <span aria-hidden="true">→</span></button><button class="btn subtle" id="smart-clear" type="button">Clear text</button></div>
+            <div class="button-row"><button class="btn primary" id="analyze-button" type="button">Analyze this snippet <span aria-hidden="true">→</span></button><button class="btn" id="smart-use-selection" type="button">Use highlighted text</button><button class="btn subtle" id="smart-clear" type="button">Clear text</button></div>
+            <p class="status-line" id="smart-selection-status" aria-live="polite"></p>
             <p class="hint" id="smart-privacy-hint">Only this excerpt and your question are sent to the local backend (max 2,500 characters). With an OpenAI key configured, the backend forwards it to OpenAI.</p>
           </div>
           <div class="result-box" id="smart-result" aria-live="polite">
@@ -338,14 +346,16 @@
 
       <section id="synapse" class="screen" aria-labelledby="synapse-title" hidden>
         <div class="section-head"><div><h2 id="synapse-title">Compare before you commit</h2><p>See a unified comparison card without opening or interacting with other sites.</p></div><span class="section-index">03 / SYNAPSEWEB</span></div>
-        <details class="demo-guide"><summary>How to demo SynapseWeb</summary><ol><li>Enter a comparison goal and example site labels.</li><li>Click <strong>Run sample comparison</strong>.</li><li>Review the illustrative matrix; its prices are fictional and no sites are queried.</li></ol></details>
+        <details class="demo-guide"><summary>How to demo SynapseWeb</summary><ol><li>Paste two or three listing snippets, separated by a blank line. Leave that box empty for a labeled sample.</li><li>Click <strong>Compare these snippets</strong> or <strong>Run sample comparison</strong>.</li><li>Read the stated price, fees written in the text, and what the text never says. Save the table to RewindWeb.</li></ol></details>
         <div class="panel panel-grid">
           <div>
-            <h3 class="panel-title"><span class="pillar-number">03</span>SynapseWeb <span class="tag">Swarm preview</span></h3>
-            <p class="panel-copy">A simulated multi-site comparison showing how a swarm result could be organized. Prices below are fictional sample data.</p>
+            <h3 class="panel-title"><span class="pillar-number">03</span>SynapseWeb <span class="tag">Your text or a sample</span></h3>
+            <p class="panel-copy">Paste listing text to compare only what those snippets say. An empty box runs a labeled sample with fictional prices. No site is opened.</p>
             <label class="field-label" for="swarm-goal">What do you want to compare?</label>
             <input id="swarm-goal" maxlength="300" value="Compare a direct flight from Bengaluru to Delhi">
-            <label class="field-label" for="swarm-sites">Example sites (comma separated)</label>
+            <label class="field-label" for="swarm-listings">Listing snippets (optional, separate with a blank line)</label>
+            <textarea id="swarm-listings" maxlength="4500" placeholder="Direct carrier&#10;Base fare ₹4,800&#10;&#10;Marketplace&#10;Base fare ₹4,899 · convenience fee ₹250"></textarea>
+            <label class="field-label" for="swarm-sites">Example sites, used only for the sample (comma separated)</label>
             <input id="swarm-sites" value="Direct carrier, Travel marketplace, Fare comparison" maxlength="300">
             <div class="button-row"><button class="btn primary" id="swarm-button" type="button">Run sample comparison <span aria-hidden="true">→</span></button></div>
           </div>
@@ -357,10 +367,10 @@
 
       <section id="butler" class="screen" aria-labelledby="butler-title" hidden>
         <div class="section-head"><div><h2 id="butler-title">Let the reminder wait for you</h2><p>Create a reminder template and trigger a local alert preview when you choose.</p></div><span class="section-index">04 / GHOSTBUTLER</span></div>
-        <details class="demo-guide"><summary>How to demo GhostButler</summary><ol><li>Create a reminder template and optionally choose a time.</li><li>At or after that time, choose <strong>Preview alert</strong>.</li><li>Confirm the dialog to show an in-app preview. Nothing is booked or sent externally.</li></ol></details>
+        <details class="demo-guide"><summary>How to demo GhostButler</summary><ol><li>Create a reminder template and optionally choose a time.</li><li>At or after that time, choose <strong>Preview alert</strong> and confirm.</li><li>Allow notifications if the browser asks. You get an in-app preview and, on this open tab, a browser notification. Nothing is booked or sent externally.</li></ol></details>
         <div class="panel">
           <h3 class="panel-title"><span class="pillar-number">04</span>GhostButler <span class="tag">Manual demo only</span></h3>
-          <p class="panel-copy">Missions are stored in memory while this server runs. There is no background scheduler, portal monitoring, queue bypass, booking, WhatsApp dispatch, or payment flow.</p>
+          <p class="panel-copy">Reminders stay in this server process. After you confirm a due reminder, this open tab can show a browser notification. Nothing is monitored, booked, or sent externally.</p>
           <div class="butler-grid">
             <div>
               <div class="result-box">
@@ -388,8 +398,8 @@
       </section>
 
       <section id="rewind" class="screen" aria-labelledby="rewind-title" hidden>
-        <div class="section-head"><div><h2 id="rewind-title">Pick up where you left off</h2><p>Search a tiny text-only demo memory, or save a note you explicitly choose.</p></div><span class="section-index">05 / REWINDWEB</span></div>
-        <details class="demo-guide"><summary>How to demo RewindWeb</summary><ol><li>Search for <code>LLM</code> or <code>hackathon</code> to filter the sample notes.</li><li>Optionally save a title and short excerpt that you choose.</li><li>Use the timeline slider to select a visible text record. Search is keyword-based; no page snapshots are stored.</li></ol></details>
+        <div class="section-head"><div><h2 id="rewind-title">Pick up where you left off</h2><p>Search notes you saved. They stay in a local file until you clear them.</p></div><span class="section-index">05 / REWINDWEB</span></div>
+        <details class="demo-guide"><summary>How to demo RewindWeb</summary><ol><li>Search for <code>LLM</code> or <code>hackathon</code> to filter the sample notes.</li><li>Save a note here, or use <strong>Save this to Rewind</strong> on a SmartPoint or SynapseWeb result.</li><li>Restart the backend and search again. Saved notes remain in a local file; sample notes are examples only.</li></ol></details>
         <div class="panel">
           <h3 class="panel-title"><span class="pillar-number">05</span>RewindWeb <span class="tag">Text-only memory</span></h3>
           <p class="panel-copy">Search uses simple keyword matching in this prototype, not embeddings. No automatic history, screenshots, cookies, or page states are collected.</p>
@@ -453,6 +463,47 @@
     function showError(container, message) {
       container.replaceChildren(make("div", "empty-state", message));
     }
+    function splitListings(raw) {
+      return raw.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean).slice(0, 3);
+    }
+    function appendSaveToRewind(container, title, snippet) {
+      const button = make("button", "btn", "Save this to Rewind");
+      button.type = "button";
+      const status = make("p", "status-line", "");
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try {
+          await api("/api/memory/capture", {
+            method: "POST",
+            body: JSON.stringify({ title: title.slice(0, 160), snippet: snippet.slice(0, 1000), url: "" })
+          });
+          status.className = "status-line success";
+          status.textContent = "Saved in RewindWeb. ";
+          const open = make("button", "btn subtle", "Open RewindWeb");
+          open.type = "button";
+          open.addEventListener("click", () => {
+            byId("memory-query").value = "";
+            showScreen("rewind", true);
+            searchMemories("");
+          });
+          status.append(open);
+        } catch (error) {
+          status.className = "status-line error";
+          status.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+      container.append(button, status);
+    }
+    async function showDueNotification(title, body) {
+      if (!("Notification" in window)) return "This browser has no notification API. The in-app preview is shown.";
+      let permission = Notification.permission;
+      if (permission === "default") permission = await Notification.requestPermission();
+      if (permission !== "granted") return "Notifications stay off. The in-app preview is shown.";
+      const notification = new Notification(title, { body });
+      notification.onclick = () => window.focus();
+      return "A browser notification was shown for this open tab.";
+    }
 
     function initVoiceAgent() {
       const listenButton = byId("voice-listen");
@@ -462,11 +513,22 @@
       const status = byId("voice-status");
       const transcript = byId("voice-transcript");
       const speakToggle = byId("voice-speak");
-      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const secure = window.isSecureContext;
-      let recognition = null;
+      const audioSupported = Boolean(
+        window.isSecureContext &&
+        navigator.mediaDevices &&
+        navigator.mediaDevices.getUserMedia &&
+        (window.AudioContext || window.webkitAudioContext) &&
+        window.WebSocket
+      );
       let phase = "idle";
       let commandInFlight = false;
+      let activeSocket = null;
+      let activeStream = null;
+      let activeAudioContext = null;
+      let activeProcessor = null;
+      let activeSource = null;
+      let activeMute = null;
+      let listenTimeout = null;
 
       function setVoiceStatus(message, state = "") {
         status.textContent = message;
@@ -476,12 +538,71 @@
 
       function setPhase(next) {
         phase = next;
-        const active = ["starting", "listening", "stopping", "processing"].includes(next);
+        const active = ["starting", "connecting", "listening", "stopping", "processing"].includes(next);
         listenButton.textContent = next === "listening" ? "Stop listening" : "Start listening";
         listenButton.setAttribute("aria-pressed", String(next === "listening"));
-        listenButton.disabled = !Recognition || !secure || ["starting", "stopping", "processing"].includes(next);
+        listenButton.disabled = !audioSupported || ["starting", "connecting", "stopping", "processing"].includes(next);
         commandInput.disabled = active || commandInFlight;
         submitButton.disabled = active || commandInFlight;
+      }
+
+      function stopCapture() {
+        clearTimeout(listenTimeout);
+        listenTimeout = null;
+        const socket = activeSocket;
+        activeSocket = null;
+        if (activeProcessor) {
+          activeProcessor.onaudioprocess = null;
+          activeProcessor.disconnect();
+          activeProcessor = null;
+        }
+        if (activeSource) {
+          activeSource.disconnect();
+          activeSource = null;
+        }
+        if (activeMute) {
+          activeMute.disconnect();
+          activeMute = null;
+        }
+        if (activeStream) {
+          activeStream.getTracks().forEach((track) => track.stop());
+          activeStream = null;
+        }
+        if (activeAudioContext) {
+          const context = activeAudioContext;
+          activeAudioContext = null;
+          context.close().catch(() => {});
+        }
+        if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
+      }
+
+      function resampleTo16k(input, sampleRate) {
+        if (sampleRate === 16000) return input;
+        const ratio = sampleRate / 16000;
+        const outputLength = Math.floor(input.length / ratio);
+        const output = new Float32Array(outputLength);
+        let inputOffset = 0;
+        for (let outputOffset = 0; outputOffset < outputLength; outputOffset += 1) {
+          const nextOffset = Math.min(input.length, Math.round((outputOffset + 1) * ratio));
+          let sum = 0;
+          let count = 0;
+          for (; inputOffset < nextOffset; inputOffset += 1) {
+            sum += input[inputOffset];
+            count += 1;
+          }
+          output[outputOffset] = count ? sum / count : 0;
+        }
+        return output;
+      }
+
+      function floatToPcm16(samples) {
+        const buffer = new ArrayBuffer(samples.length * 2);
+        const view = new DataView(buffer);
+        for (let index = 0; index < samples.length; index += 1) {
+          const sample = Math.max(-1, Math.min(1, samples[index]));
+          view.setInt16(index * 2, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+        }
+        return buffer;
       }
 
       function speakReply(message) {
@@ -489,7 +610,7 @@
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(message);
         utterance.lang = "en-IN";
-        utterance.onerror = () => setVoiceStatus("Spoken reply failed; the response is still shown as text.", "error");
+        utterance.onerror = () => setVoiceStatus("Spoken reply failed; the response is still shown as text.");
         window.speechSynthesis.speak(utterance);
       }
 
@@ -542,96 +663,206 @@
         runCommand(commandInput.value);
       });
 
-      if (!secure) {
-        listenButton.disabled = true;
-        setVoiceStatus("Microphone commands require HTTPS or localhost. Typed commands still work.", "error");
-      } else if (!Recognition) {
-        listenButton.disabled = true;
-        setVoiceStatus("This browser does not support speech recognition. Typed commands still work.");
-      } else {
-        recognition = new Recognition();
-        recognition.lang = "en-IN";
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.onstart = () => {
-          setPhase("listening");
-          setVoiceStatus("Listening. Say one command, then pause.");
-        };
-        recognition.onresult = (event) => {
-          const finalResult = event.results[event.results.length - 1];
-          const command = finalResult && finalResult[0] ? finalResult[0].transcript.trim() : "";
-          if (!command) {
+      async function startListening() {
+        if (phase !== "idle" || !audioSupported) return;
+        setPhase("starting");
+        setVoiceStatus("Requesting microphone access…");
+        try {
+          const health = await api("/api/voice/status");
+          if (!health.available) {
             setPhase("idle");
-            setVoiceStatus("No command was recognized. Try again or type it below.", "error");
+            setVoiceStatus("Offline speech model is unavailable on this server. Typed commands still work.", "error");
             return;
           }
-          runCommand(command);
-        };
-        recognition.onerror = (event) => {
-          if (event.error === "aborted" && phase === "stopping") return;
-          const messages = {
-            "not-allowed": "Microphone permission was denied. Allow microphone access in browser settings.",
-            "service-not-allowed": "The browser speech service is unavailable. Try typed commands.",
-            "audio-capture": "No microphone was found. Connect one or use typed commands.",
-            "no-speech": "No speech was heard. Check your microphone and try again.",
-            "network": "Speech recognition needs a network connection. Try typed commands.",
-            "language-not-supported": "This browser does not support English (India) recognition."
-          };
-          setPhase("idle");
-          setVoiceStatus(messages[event.error] || "Speech recognition stopped. Try again or type a command.", "error");
-        };
-        recognition.onend = () => {
-          if (phase === "stopping") {
+
+          activeStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              channelCount: 1,
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            },
+            video: false
+          });
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          activeAudioContext = new AudioContextClass();
+          await activeAudioContext.resume();
+          if (phase !== "starting") {
+            stopCapture();
             setPhase("idle");
-            setVoiceStatus("Listening stopped.");
-          } else if (phase === "starting" || phase === "listening") {
-            setPhase("idle");
-            setVoiceStatus("Listening ended without a command. Try again or type it below.", "error");
+            return;
           }
-        };
+
+          const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+          const socket = new WebSocket(`${protocol}//${location.host}/ws/speech`);
+          activeSocket = socket;
+          setPhase("connecting");
+          setVoiceStatus("Connecting to local speech recognition…");
+
+          socket.onopen = () => {
+            if (activeSocket !== socket || phase !== "connecting") {
+              socket.close();
+              return;
+            }
+            activeSource = activeAudioContext.createMediaStreamSource(activeStream);
+            activeProcessor = activeAudioContext.createScriptProcessor(4096, 1, 1);
+            activeMute = activeAudioContext.createGain();
+            activeMute.gain.value = 0;
+            activeSource.connect(activeProcessor);
+            activeProcessor.connect(activeMute);
+            activeMute.connect(activeAudioContext.destination);
+            activeProcessor.onaudioprocess = (event) => {
+              if (activeSocket !== socket || socket.readyState !== WebSocket.OPEN) return;
+              if (socket.bufferedAmount > 262144) {
+                setVoiceStatus("Audio connection is slow. Pause, then try again.", "error");
+                stopCapture();
+                setPhase("idle");
+                return;
+              }
+              const samples = resampleTo16k(
+                event.inputBuffer.getChannelData(0),
+                activeAudioContext.sampleRate
+              );
+              socket.send(floatToPcm16(samples));
+            };
+            setPhase("listening");
+            transcript.textContent = "Listening locally. Say one short command, then pause.";
+            setVoiceStatus("Listening. Your audio is processed by this AuraOS server.");
+            listenTimeout = setTimeout(() => {
+              if (activeSocket !== socket) return;
+              stopCapture();
+              setPhase("idle");
+              setVoiceStatus("Listening timed out after 45 seconds. Start again for another command.");
+              transcript.textContent = "Microphone is off.";
+            }, 45000);
+          };
+
+          socket.onmessage = (event) => {
+            if (activeSocket !== socket) return;
+            let message;
+            try {
+              message = JSON.parse(event.data);
+            } catch {
+              setVoiceStatus("Speech service sent an invalid response. Try typed commands.", "error");
+              stopCapture();
+              setPhase("idle");
+              return;
+            }
+            if (message.type === "partial" && message.text) {
+              transcript.textContent = `Hearing: ${message.text}`;
+            } else if (message.type === "final" && message.text) {
+              const command = message.text.trim();
+              stopCapture();
+              setPhase("idle");
+              transcript.textContent = `Recognized: ${command}`;
+              runCommand(command);
+            } else if (message.type === "error") {
+              stopCapture();
+              setPhase("idle");
+              setVoiceStatus(message.message || "Speech recognition failed. Try typed commands.", "error");
+            }
+          };
+
+          socket.onerror = () => {
+            if (activeSocket !== socket) return;
+            stopCapture();
+            setPhase("idle");
+            setVoiceStatus("Could not reach local speech recognition. Check your connection and try again.", "error");
+          };
+          socket.onclose = (event) => {
+            if (activeSocket !== socket) return;
+            stopCapture();
+            setPhase("idle");
+            if (event.code !== 1000) {
+              setVoiceStatus("Speech connection ended unexpectedly. Try again or type a command.", "error");
+            } else if (phase !== "idle") {
+              setVoiceStatus("Listening stopped.");
+            }
+          };
+        } catch (error) {
+          stopCapture();
+          setPhase("idle");
+          const messages = {
+            NotAllowedError: "Microphone permission was denied. Allow microphone access in browser settings.",
+            NotFoundError: "No microphone was found. Connect one or use typed commands.",
+            NotReadableError: "The microphone is busy in another app. Close it and try again.",
+            AbortError: "Microphone access was interrupted. Try again."
+          };
+          setVoiceStatus(
+            messages[error.name] || error.message || "Could not start local voice recognition.",
+            "error"
+          );
+        }
+      }
+
+      if (!audioSupported) {
+        listenButton.disabled = true;
+        setVoiceStatus("Microphone access requires a supported browser on HTTPS or localhost. Typed commands still work.", "error");
+      } else {
+        listenButton.disabled = true;
+        setVoiceStatus("Checking local speech engine…");
+        api("/api/voice/status")
+          .then((health) => {
+            listenButton.disabled = !health.available;
+            if (health.available) {
+              setVoiceStatus("Local speech is ready. Click Start listening, then speak one command.");
+            } else {
+              setVoiceStatus("Offline speech model is unavailable on this server. Typed commands still work.", "error");
+            }
+          })
+          .catch(() => {
+            listenButton.disabled = true;
+            setVoiceStatus("Could not check the local speech engine. Typed commands still work.", "error");
+          });
         listenButton.addEventListener("click", () => {
           if (phase === "listening") {
             setPhase("stopping");
-            setVoiceStatus("Stopping microphone…");
-            recognition.stop();
-            return;
-          }
-          if (phase !== "idle") return;
-          setPhase("starting");
-          setVoiceStatus("Starting microphone…");
-          try {
-            recognition.start();
-          } catch {
+            stopCapture();
             setPhase("idle");
-            setVoiceStatus("The microphone could not start. Check its permission and try again.", "error");
+            setVoiceStatus("Listening stopped.");
+            transcript.textContent = "Microphone is off.";
+          } else {
+            startListening();
           }
         });
       }
 
       window.addEventListener("pagehide", () => {
-        if (recognition && phase === "listening") recognition.abort();
+        stopCapture();
         if (window.speechSynthesis) window.speechSynthesis.cancel();
       });
     }
 
 
+    let checkingBackend = false;
     async function checkBackend() {
       const dot = byId("backend-dot");
       const label = byId("backend-label");
+      const refreshButton = byId("server-refresh");
+      if (checkingBackend) return;
+      checkingBackend = true;
+      refreshButton.disabled = true;
       try {
         const status = await api("/api/status");
+        const voiceStatus = await api("/api/voice/status");
         dot.className = "connection-dot live";
-        label.textContent = status.demo_mode ? "Local demo backend · simulated data" : "Backend connected";
+        label.textContent = voiceStatus.available
+          ? "AuraOS server online · local voice ready"
+          : "AuraOS server online · typed commands ready";
+        label.title = `${location.origin} · ${status.demo_mode ? "simulated demo data" : "connected"} · ${voiceStatus.engine}`;
         if (status.analysis_mode === "OPENAI_CONFIGURED") {
           byId("smart-privacy-hint").textContent = "Only this excerpt and your question are sent to the backend, then forwarded to the configured OpenAI provider (max 2,500 characters).";
         }
       } catch (error) {
         dot.className = "connection-dot offline";
-        label.textContent = "Backend offline";
+        label.textContent = "AuraOS server offline";
         label.title = error.message;
+      } finally {
+        checkingBackend = false;
+        refreshButton.disabled = false;
       }
     }
+    byId("server-refresh").addEventListener("click", checkBackend);
 
     byId("analyze-button").addEventListener("click", async (event) => {
       const button = event.currentTarget;
@@ -664,6 +895,7 @@
         result.append(list);
         result.append(make("p", "hint", data.action_recommendation || "Review the original context."));
         result.append(make("p", "status-line", `${modeLabel} · based only on the excerpt you submitted`));
+        appendSaveToRewind(result, data.title || "SmartPoint note", `${data.summary}\n\nSelected: ${snippet}`);
       } catch (error) {
         showError(result, error.message);
       } finally {
@@ -671,7 +903,19 @@
         button.innerHTML = 'Analyze this snippet <span aria-hidden="true">→</span>';
       }
     });
-    byId("smart-clear").addEventListener("click", () => { byId("smart-text").value = ""; });
+    byId("smart-clear").addEventListener("click", () => {
+      byId("smart-text").value = "";
+      setStatus(byId("smart-selection-status"), "");
+    });
+    byId("smart-use-selection").addEventListener("click", () => {
+      const selected = window.getSelection ? window.getSelection().toString().replace(/\s+/g, " ").trim() : "";
+      if (!selected) {
+        setStatus(byId("smart-selection-status"), "Highlight a line in the practice card or elsewhere on this page first.", "error");
+        return;
+      }
+      byId("smart-text").value = selected.slice(0, 2500);
+      setStatus(byId("smart-selection-status"), "Highlighted text is ready to analyze. Nothing else on the page was sent.", "success");
+    });
 
     const airStage = byId("air-stage");
     const airTargets = [...document.querySelectorAll(".air-target")];
@@ -718,45 +962,69 @@
     });
     byId("air-swipe").addEventListener("click", () => window.scrollBy({ top: 300, behavior: "smooth" }));
 
+    function swarmButtonLabel() {
+      return splitListings(byId("swarm-listings").value).length
+        ? 'Compare these snippets <span aria-hidden="true">→</span>'
+        : 'Run sample comparison <span aria-hidden="true">→</span>';
+    }
+    byId("swarm-listings").addEventListener("input", () => {
+      if (!byId("swarm-button").disabled) byId("swarm-button").innerHTML = swarmButtonLabel();
+    });
     byId("swarm-button").addEventListener("click", async (event) => {
       const button = event.currentTarget;
       const result = byId("swarm-result");
       const goal = byId("swarm-goal").value.trim();
+      const listings = splitListings(byId("swarm-listings").value);
       const targetSites = byId("swarm-sites").value.split(",").map((site) => site.trim()).filter(Boolean).slice(0, 5);
-      if (!goal || !targetSites.length) { showError(result, "Enter a comparison goal and at least one example site."); return; }
+      if (!goal) { showError(result, "Enter what you want to compare."); return; }
+      if (!listings.length && !targetSites.length) { showError(result, "Paste listing snippets, or add at least one sample site label."); return; }
       button.disabled = true;
-      button.textContent = "Preparing sample…";
+      button.textContent = listings.length ? "Comparing your text…" : "Preparing sample…";
       try {
         const data = await api("/api/swarm/execute", {
           method: "POST",
-          body: JSON.stringify({ goal, target_sites: targetSites, max_parallel_tabs: targetSites.length })
+          body: JSON.stringify({
+            goal,
+            target_sites: targetSites.length ? targetSites : null,
+            listings: listings.length ? listings : null,
+            max_parallel_tabs: Math.max(1, listings.length || targetSites.length)
+          })
         });
+        const fromText = data.comparison_source === "USER_TEXT";
         result.replaceChildren();
-        result.append(make("span", "tag", "Illustrative sample · not live"));
+        result.append(make("span", "tag", fromText ? "From your snippets · not live" : "Illustrative sample · not live"));
         result.append(make("h3", "", data.winner.platform));
         result.append(make("p", "", `${data.winner.final_price} · ${data.winner.savings}`));
         const tableWrap = make("div", "table-wrap");
         const table = make("table");
         const head = make("thead");
         const heading = make("tr");
-        ["Example site", "Shown total", "Sample"].forEach((value) => heading.append(make("th", "", value)));
+        (fromText ? ["Listing", "Stated price", "Fees in the text", "Not in the text"] : ["Example site", "Shown total", "Sample"]).forEach((value) => heading.append(make("th", "", value)));
         head.append(heading);
         const body = make("tbody");
+        const noteLines = [];
         (data.comparison_matrix || []).forEach((item) => {
           const row = make("tr", item.is_best ? "best" : "");
-          [item.platform, item.total, item.is_best ? "Example pick" : "Example"].forEach((value) => row.append(make("td", "", value)));
+          const cells = fromText
+            ? [item.platform, item.stated_price, item.fees_mentioned, item.not_in_text]
+            : [item.platform, item.total, item.is_best ? "Example pick" : "Example"];
+          cells.forEach((value) => row.append(make("td", "", value || "")));
           body.append(row);
+          noteLines.push(fromText
+            ? `${item.platform}: stated ${item.stated_price}; fees ${item.fees_mentioned}; missing ${item.not_in_text}`
+            : `${item.platform}: ${item.total} (sample)`);
         });
         table.append(head, body);
         tableWrap.append(table);
         result.append(tableWrap);
-        result.append(make("p", "disclaimer", data.message || "Sample figures only; verify with each provider."));
+        result.append(make("p", "disclaimer", data.message || "No websites were queried."));
         result.append(make("p", "hint", "No cart was prepared and no external action is available."));
+        appendSaveToRewind(result, `Comparison: ${goal}`.slice(0, 160), noteLines.join("\n"));
       } catch (error) {
         showError(result, error.message);
       } finally {
         button.disabled = false;
-        button.innerHTML = 'Run sample comparison <span aria-hidden="true">→</span>';
+        button.innerHTML = swarmButtonLabel();
       }
     });
 
@@ -786,7 +1054,7 @@
         trigger.disabled = waitMs > 0;
         if (waitMs > 0) setTimeout(loadMissions, Math.min(waitMs + 500, 2147483000));
         trigger.addEventListener("click", async () => {
-          const accepted = window.confirm("Trigger a simulated in-app alert for this reminder? No site will be checked and no booking or payment will happen.");
+          const accepted = window.confirm("Show this reminder on the page and, if you allow it, as a browser notification? No site will be checked and no booking or payment will happen.");
           if (!accepted) return;
           trigger.disabled = true;
           try {
@@ -794,10 +1062,12 @@
               method: "POST",
               body: JSON.stringify({ mission_id: mission.id, confirmed: true })
             });
+            const notified = await showDueNotification(mission.title, data.notification.message);
             renderMissions(await api("/api/butler/missions"));
             const preview = byId("alert-preview");
             preview.replaceChildren(make("strong", "", `${data.notification.channel} · simulation`));
             preview.append(make("p", "", data.notification.message));
+            preview.append(make("p", "", notified));
             preview.hidden = false;
           } catch (error) {
             setStatus(byId("mission-status"), error.message, "error");
@@ -830,7 +1100,7 @@
           })
         });
         event.currentTarget.reset();
-        setStatus(byId("mission-status"), "Saved in this server process. It will not run in the background.", "success");
+        setStatus(byId("mission-status"), "Saved in this server process. Confirm it here when it is due to show a notification.", "success");
         await loadMissions();
       } catch (error) {
         setStatus(byId("mission-status"), error.message, "error");
@@ -907,7 +1177,7 @@
         event.currentTarget.reset();
         byId("memory-query").value = "";
         await searchMemories("");
-        setStatus(byId("memory-status"), "Saved in this server process. No screenshot or page state was captured.", "success");
+        setStatus(byId("memory-status"), "Saved to a local file. It stays after a restart until you clear memory.", "success");
       } catch (error) {
         setStatus(byId("memory-status"), error.message, "error");
       } finally {
@@ -920,7 +1190,7 @@
         await api("/api/memory/history", { method: "DELETE" });
         byId("memory-query").value = "";
         await searchMemories("");
-        setStatus(byId("memory-status"), "Memory cleared from this server process.", "success");
+        setStatus(byId("memory-status"), "Saved notes were removed from the local file. Sample notes return after a restart.", "success");
       } catch (error) {
         setStatus(byId("memory-status"), error.message, "error");
       }

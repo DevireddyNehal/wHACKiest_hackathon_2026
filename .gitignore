@@ -6,6 +6,8 @@ __pycache__/
 env/
 .env
 .DS_Store
+data/
 *.log
 vosk-model*
+backend/models/
 

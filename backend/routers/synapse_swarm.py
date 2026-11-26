@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api/swarm", tags=["SynapseSwarm"])
 class SwarmRequest(BaseModel):
     goal: str = Field(min_length=1, max_length=300)
     target_sites: Optional[List[str]] = Field(default=None, max_length=5)
+    listings: Optional[List[str]] = Field(default=None, max_length=3)
     max_parallel_tabs: int = Field(default=3, ge=1, le=5)
 
     @field_validator("goal")
@@ -33,6 +34,16 @@ class SwarmRequest(BaseModel):
             raise ValueError("Provide up to five nonblank site labels of at most 100 characters.")
         return sites
 
+    @field_validator("listings")
+    @classmethod
+    def validate_listings(cls, value: Optional[List[str]]) -> Optional[List[str]]:
+        if value is None:
+            return None
+        listings = [item.strip() for item in value if item and item.strip()]
+        if len(listings) > 3 or any(len(item) > 1500 for item in listings):
+            raise ValueError("Provide up to three listing snippets of at most 1,500 characters.")
+        return listings or None
+
 class SwarmResponse(BaseModel):
     swarm_id: str
     goal: str
@@ -43,6 +54,7 @@ class SwarmResponse(BaseModel):
     prefilled_cart_ready: bool
     consent_shield_active: bool
     execution_mode: str
+    comparison_source: str
     message: str
 
 @router.post("/execute", response_model=SwarmResponse)
@@ -54,6 +66,7 @@ async def execute_swarm_task(req: SwarmRequest):
     default_sites = req.target_sites or ["Site A (Aggregator)", "Site B (Direct)", "Site C (Discount)"]
     result = await llm_service.orchestrate_multi_tab_swarm(
         goal=req.goal,
-        target_sites=default_sites
+        target_sites=default_sites,
+        listings=req.listings,
     )
     return result

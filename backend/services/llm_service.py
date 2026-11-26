@@ -6,6 +6,7 @@ Routes micro-DOM and multi-tab queries to live LLMs or smart deterministic fallb
 import httpx
 import logging
 import re
+import uuid
 from html import unescape
 from typing import Dict, Any, Optional
 from backend.config import settings
@@ -30,11 +31,18 @@ class LLMService:
         result["analysis_mode"] = "DEMO_MOCK"
         return result
 
-    async def orchestrate_multi_tab_swarm(self, goal: str, target_sites: list[str]) -> Dict[str, Any]:
+    async def orchestrate_multi_tab_swarm(
+        self,
+        goal: str,
+        target_sites: list[str],
+        listings: Optional[list[str]] = None,
+    ) -> Dict[str, Any]:
         """
-        Pillar 3 (SynapseWeb): Decomposes high-level intent into multi-tab parallel tasks
-        and synthesizes cross-site results into a single comparison card.
+        Pillar 3 (SynapseWeb): Compare pasted listing text, or return a labeled sample.
         """
+        if listings:
+            return self._compare_user_listings(goal, listings)
+
         if not self.is_mock and settings.OPENAI_API_KEY:
             return await self._call_openai_swarm(goal, target_sites)
 
@@ -124,7 +132,42 @@ class LLMService:
             "prefilled_cart_ready": False,
             "consent_shield_active": True,
             "execution_mode": "SIMULATED",
+            "comparison_source": "SAMPLE",
             "message": "Illustrative sample data only. No websites were opened or queried.",
+        }
+
+    def _compare_user_listings(self, goal: str, listings: list[str]) -> Dict[str, Any]:
+        rows = [_parse_listing(text, index) for index, text in enumerate(listings, start=1)]
+        amounts = [_first_amount(row["stated_price"]) for row in rows]
+        if len(rows) > 1 and all(amount is not None for amount in amounts):
+            best_index = min(range(len(amounts)), key=lambda index: amounts[index])
+            rows[best_index]["is_best"] = True
+            winner_name = rows[best_index]["platform"]
+            winner_price = rows[best_index]["stated_price"]
+            savings = "Lowest stated price in the pasted text. Fees the snippets omit can change the total."
+        else:
+            winner_name = "No single pick"
+            winner_price = "Not comparable from these snippets"
+            savings = "At least one snippet has no stated price, so none is marked lower."
+        return {
+            "swarm_id": f"swarm_{uuid.uuid4().hex[:8]}",
+            "goal": goal,
+            "status": "COMPLETED",
+            "sites_scanned": [row["platform"] for row in rows],
+            "winner": {
+                "platform": winner_name,
+                "final_price": winner_price,
+                "savings": savings,
+                "delivery_or_time": "Not taken from a live site",
+                "baggage": "Included only when the pasted text mentions it",
+                "direct_url": None,
+            },
+            "comparison_matrix": rows,
+            "prefilled_cart_ready": False,
+            "consent_shield_active": True,
+            "execution_mode": "FROM_USER_TEXT",
+            "comparison_source": "USER_TEXT",
+            "message": "Compared only the snippets you pasted. No websites were opened or queried.",
         }
 
     async def _call_openai_dom_analysis(self, dom_snippet: str, user_prompt: str, context_url: Optional[str]) -> Dict[str, Any]:
@@ -177,5 +220,57 @@ class LLMService:
 
     async def _call_openai_swarm(self, goal: str, target_sites: list[str]) -> Dict[str, Any]:
         return self._mock_swarm_results(goal, target_sites)
+
+_AMOUNT_RE = re.compile(r"(?:₹|Rs\.?|INR|\$)\s*[\d,]+(?:\.\d+)?", re.IGNORECASE)
+_FEE_WORDS = ("convenience", "fee", "tax", "gst", "seat", "baggage", "insurance", "surcharge", "charge")
+_GAP_CHECKS = (
+    ("total", "grand", "payable", "checkout"),
+    ("cancel",),
+    ("baggage", "luggage"),
+)
+_GAP_LABELS = (
+    "a final checkout total",
+    "a cancellation policy",
+    "baggage rules",
+)
+
+
+def _first_amount(text: str) -> Optional[float]:
+    match = re.search(r"[\d,]+(?:\.\d+)?", text or "")
+    if not match:
+        return None
+    return float(match.group(0).replace(",", ""))
+
+
+def _parse_listing(text: str, index: int) -> Dict[str, Any]:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    label = lines[0][:80] if lines and len(lines[0]) <= 80 else f"Listing {index}"
+    amounts = _AMOUNT_RE.findall(text)
+    fee_amounts: list[str] = []
+    for line in lines:
+        lowered = line.lower()
+        if any(word in lowered for word in _FEE_WORDS):
+            fee_amounts.extend(_AMOUNT_RE.findall(line))
+    lowered_text = text.lower()
+    missing = [
+        label_text
+        for words, label_text in zip(_GAP_CHECKS, _GAP_LABELS)
+        if not any(word in lowered_text for word in words)
+    ]
+    if not amounts:
+        missing.insert(0, "any stated price")
+    stated = amounts[0] if amounts else "No price written in this snippet"
+    fees = ", ".join(dict.fromkeys(fee_amounts)) if fee_amounts else "No fee amount is written in this snippet"
+    return {
+        "platform": label,
+        "stated_price": stated,
+        "fees_mentioned": fees,
+        "not_in_text": "; ".join(missing) if missing else "The snippet mentions a total, cancellation, and baggage.",
+        "base": stated,
+        "fees": fees,
+        "total": stated if any(word in lowered_text for word in ("total", "grand", "payable", "checkout")) else "Not stated",
+        "is_best": False,
+    }
+
 
 llm_service = LLMService()

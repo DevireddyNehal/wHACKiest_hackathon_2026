@@ -49,6 +49,8 @@ class SmartPointEngine {
 
     // Slices only the micro-DOM under cursor (max 2000 chars)
     const domSnippet = this.extractMicroDOM(this.currentHoveredElement);
+    this.lastSnippet = domSnippet;
+    this.lastPageUrl = location.href;
     const rect = this.currentHoveredElement.getBoundingClientRect();
 
     // Show loading HUD
@@ -78,13 +80,10 @@ class SmartPointEngine {
 
   extractMicroDOM(el) {
     const clone = el.cloneNode(true);
-    // Remove heavy SVGs and scripts
     clone.querySelectorAll("svg, script, style, noscript, iframe").forEach(n => n.remove());
-    let html = clone.outerHTML || el.innerText || "";
-    if (html.length > 2500) {
-      html = html.substring(0, 2500) + "... [truncated]";
-    }
-    return html;
+    const visible = (clone.innerText || clone.textContent || "").replace(/\s+/g, " ").trim();
+    if (visible) return visible.slice(0, 2500);
+    return (clone.outerHTML || "").slice(0, 2500);
   }
 
   showHUD(x, y, data, isLoading) {
@@ -151,7 +150,22 @@ class SmartPointEngine {
       mode.className = "aura-hud-latency";
       mode.textContent = data.analysis_mode === "OPENAI" ? "OpenAI" : "Demo";
       footer.append(recommendation, mode);
-      this.hudElement.append(header, title, summary, breakdown, footer);
+      const save = document.createElement("button");
+      save.type = "button";
+      save.className = "aura-hud-save";
+      save.textContent = "Save to Rewind";
+      save.addEventListener("click", () => {
+        save.disabled = true;
+        chrome.runtime.sendMessage({
+          type: "SAVE_TO_REWIND",
+          title: data.title || "SmartPoint note",
+          url: this.lastPageUrl || location.href,
+          snippet: `${data.summary || ""}\n\nSelected: ${this.lastSnippet || ""}`.slice(0, 1000)
+        }, (res) => {
+          save.textContent = res && res.success ? "Saved to Rewind" : "Save failed";
+        });
+      });
+      this.hudElement.append(header, title, summary, breakdown, footer, save);
     }
 
     document.body.appendChild(this.hudElement);

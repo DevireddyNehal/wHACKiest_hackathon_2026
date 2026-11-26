@@ -1,12 +1,11 @@
-"""
-AuraOS - Voice Gateway WebSocket
-Enables full-duplex sub-300ms bidirectional speech streaming between browser extension & ElevenLabs.
-"""
+"""Local speech recognition and allowlisted voice commands for the AuraOS demo."""
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import json
 import logging
+import os
 import re
+from pathlib import Path
 from typing import Any, Dict
 
 from pydantic import BaseModel, Field, field_validator
@@ -17,6 +16,22 @@ from backend.services.voice_service import voice_service
 router = APIRouter(prefix="/ws", tags=["VoiceGateway"])
 command_router = APIRouter(prefix="/api/voice", tags=["Voice commands"])
 logger = logging.getLogger("AuraOS.WebSocket")
+MODEL_PATH = Path(os.getenv(
+    "VOSK_MODEL_PATH",
+    Path(__file__).resolve().parents[1] / "models" / "vosk-model-small-en-us-0.15",
+))
+
+try:
+    from vosk import KaldiRecognizer, Model, SetLogLevel
+except ImportError:
+    KaldiRecognizer = None
+    Model = None
+    SetLogLevel = None
+
+if SetLogLevel:
+    SetLogLevel(-1)
+
+speech_model = Model(str(MODEL_PATH)) if Model and MODEL_PATH.is_dir() else None
 
 
 class VoiceCommandRequest(BaseModel):
@@ -47,7 +62,7 @@ def interpret_command(command: str) -> Dict[str, Any]:
 
     search_match = re.fullmatch(
         r"(?:search|find|look up)\s+(?:(?:my|saved)\s+)?"
-        r"(?:memory|notes)(?:\s+(?:for|about))?(?:\s+(.+))?",
+        r"(?:memory|notes?)(?:\s+(?:for|about))?(?:\s+(.+))?",
         text,
     )
     if search_match:
@@ -59,8 +74,9 @@ def interpret_command(command: str) -> Dict[str, Any]:
         }
 
     if re.fullmatch(
-        r"(?:run|start|execute|do)\s+(?:the\s+)?(?:sample\s+)?comparison"
-        r"(?:\s+now)?|compare\s+(?:the\s+)?(?:sample\s+)?options",
+        r"(?:run|start|execute|do)\s+(?:(?:the|a|an)\s+)?"
+        r"(?:(?:sample|demo)\s+)?comparison(?:\s+now)?"
+        r"|compare\s+(?:(?:the|some)\s+)?(?:sample\s+)?options",
         text,
     ):
         return {
@@ -70,7 +86,7 @@ def interpret_command(command: str) -> Dict[str, Any]:
         }
 
     if re.fullmatch(
-        r"(?:analyze|analyse|explain|check)\s+(?:this\s+)?"
+        r"(?:analyze|analyse|explain|check)\s+(?:(?:this|the|that)\s+)?"
         r"(?:snippet|selected text|charges)",
         text,
     ):
@@ -183,6 +199,68 @@ def interpret_command(command: str) -> Dict[str, Any]:
 async def handle_voice_command(request: VoiceCommandRequest) -> Dict[str, Any]:
     """Turn a short transcript into a safe, allowlisted dashboard action."""
     return interpret_command(request.command)
+
+
+@command_router.get("/status")
+async def voice_status() -> Dict[str, Any]:
+    return {
+        "available": speech_model is not None,
+        "engine": "local-vosk" if speech_model else "typed-command-fallback",
+        "model": MODEL_PATH.name if speech_model else None,
+    }
+
+
+@router.websocket("/speech")
+async def local_speech_socket(websocket: WebSocket):
+    """Recognize 16 kHz mono PCM locally; audio is not forwarded to a provider."""
+    await websocket.accept()
+    if speech_model is None or KaldiRecognizer is None:
+        await websocket.send_json({
+            "type": "error",
+            "message": "Offline speech model is not installed. Use typed commands.",
+        })
+        await websocket.close(code=1011)
+        return
+
+    recognizer = KaldiRecognizer(speech_model, 16000)
+    last_partial = ""
+    received_bytes = 0
+    await websocket.send_json({"type": "ready", "engine": "local-vosk"})
+
+    try:
+        while True:
+            audio = await websocket.receive_bytes()
+            if not audio:
+                continue
+            received_bytes += len(audio)
+            if received_bytes > 16000 * 2 * 60:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Listening reached the 60-second limit. Start a new command.",
+                })
+                await websocket.close(code=1009)
+                return
+            if len(audio) > 65536:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Audio frame was too large. Restart listening and try again.",
+                })
+                await websocket.close(code=1009)
+                return
+
+            if recognizer.AcceptWaveform(audio):
+                result = json.loads(recognizer.Result())
+                last_partial = ""
+                if result.get("text"):
+                    await websocket.send_json({"type": "final", "text": result["text"]})
+            else:
+                result = json.loads(recognizer.PartialResult())
+                partial = result.get("partial", "")
+                if partial and partial != last_partial:
+                    last_partial = partial
+                    await websocket.send_json({"type": "partial", "text": partial})
+    except WebSocketDisconnect:
+        logger.info("Local speech socket disconnected cleanly")
 
 
 @router.websocket("/voice")

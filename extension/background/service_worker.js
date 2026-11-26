@@ -51,4 +51,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
   }
+
+  if (message.type === "SAVE_TO_REWIND") {
+    fetch(`${BACKEND_URL}/api/memory/capture`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: String(message.title || "SmartPoint note").slice(0, 160),
+        url: String(message.url || "").slice(0, 500),
+        snippet: String(message.snippet || "").slice(0, 1000)
+      })
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(typeof data.detail === "string" ? data.detail : "Could not save this note.");
+        }
+        return data;
+      })
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
 });
