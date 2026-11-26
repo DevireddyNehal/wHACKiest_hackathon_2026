@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraOS Command Center</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="panel-container">
+    <!-- Top Header -->
+    <header class="panel-header">
+      <div class="brand">
+        <span class="logo-aura">AURA</span><span class="logo-os">OS</span>
+        <span class="hackathon-tag">wHACKiest '26</span>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot live" id="backend-status-dot"></span>
+        <span class="status-label" id="backend-status-text">Backend Live</span>
+      </div>
+    </header>
+
+    <!-- Mode Selector: Desk Mode vs Air Mode -->
+    <section class="mode-section">
+      <div class="mode-switch-pill">
+        <button class="mode-btn active" id="btn-mode-desk">
+          <span class="icon">🖱️</span> Desk Mode
+        </button>
+        <button class="mode-btn" id="btn-mode-air">
+          <span class="icon">✳</span> Air Mode
+        </button>
+      </div>
+      <div class="mode-caption" id="mode-caption">
+        <strong>Desk Mode:</strong> Hover over text and use the extension shortcut to analyze a small selected element.
+      </div>
+    </section>
+
+    <!-- Voice Command Bar -->
+    <section class="voice-section">
+      <div class="voice-bar">
+        <input type="text" id="voice-input" placeholder="Type a request about the selected element..." />
+        <button class="send-btn" id="btn-voice-send">→</button>
+      </div>
+      <div class="voice-hint">Text prompt for the selected page element · microphone commands are available on the main dashboard</div>
+    </section>
+
+    <!-- Tab Panels / Sections -->
+    <main class="modules-container">
+      <!-- Pillar 3: Multi-Tab Swarm -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h3>SynapseWeb Comparison Demo</h3>
+        </div>
+        <p class="card-desc">Illustrative comparison only. No websites are opened or queried.</p>
+        <button class="action-btn" id="btn-run-swarm">Show sample comparison</button>
+        <div class="swarm-results" id="swarm-results-box" style="display: none;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Pillar 4: GhostButler Background Tasks -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">🤖</span>
+          <h3>GhostButler Reminder Demo</h3>
+        </div>
+        <p class="card-desc">Reminder templates are in-memory. No background monitoring, booking, messages, or payments.</p>
+        <div class="mission-pill" id="active-mission-pill">
+          <span class="live-dot"></span>
+          <span>Loading demo reminder…</span>
+        </div>
+        <button class="action-btn secondary" id="btn-trigger-whatsapp">Preview a demo alert</button>
+        <div class="whatsapp-preview" id="whatsapp-preview-box" style="display: none;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Pillar 5: RewindWeb Memory -->
+      <div class="module-card">
+        <div class="card-header">
+          <span class="card-icon">🕰️</span>
+          <h3>RewindWeb Text Memory</h3>
+        </div>
+        <p class="card-desc">Keyword search over sample or explicitly saved text. No automatic history or screenshots.</p>
+        <div class="search-bar">
+          <input type="text" id="memory-search-input" placeholder="Search sample notes (e.g. 'LLM benchmark')..." />
+        </div>
+        <div class="memory-list" id="memory-list-box">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </main>
+
+    <footer class="panel-footer">
+      <span>Track 02: Beyond the Browser</span>
+      <span class="version-tag">v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

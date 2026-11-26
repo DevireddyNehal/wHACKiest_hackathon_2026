@@ -1,0 +1,199 @@
+/* ==========================================================================
+   AuraOS Content Styles - Modern Frosted-Glass Dark UI
+   ========================================================================== */
+
+/* SmartPoint Floating Popover HUD */
+.aura-smartpoint-hud {
+  position: absolute;
+  z-index: 2147483647;
+  width: 360px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.15);
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 16px;
+  animation: auraHudFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+@keyframes auraHudFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.aura-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.aura-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.aura-badge.ok {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.aura-badge.bad {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.aura-badge.loading {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.aura-hud-close {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: 18px;
+  color: #94a3b8;
+  transition: color 0.15s;
+}
+
+.aura-hud-close:hover {
+  color: #f8fafc;
+}
+
+.aura-hud-title {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.aura-hud-summary {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.aura-hud-breakdown {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.aura-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.aura-breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.aura-breakdown-row.warn {
+  color: #fbbf24;
+}
+
+.aura-breakdown-row.highlight {
+  font-weight: 700;
+  color: #38bdf8;
+  border-top: 1px dashed rgba(56, 189, 248, 0.3);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.aura-hud-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+}
+
+.aura-hud-latency {
+  font-family: monospace;
+  color: #64748b;
+}
+
+/* Spinner */
+.aura-hud-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.aura-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #818cf8;
+  border-radius: 50%;
+  animation: auraSpin 0.7s linear infinite;
+}
+
+@keyframes auraSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pulse on targeted element */
+.aura-pulse-target {
+  outline: 2px solid #818cf8 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 16px rgba(129, 140, 248, 0.45) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* AirTouch Virtual Laser Dot */
+.aura-laser-dot {
+  position: fixed;
+  z-index: 2147483647;
+  width: 18px;
+  height: 18px;
+  background: #38bdf8;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #38bdf8, 0 0 40px rgba(56, 189, 248, 0.7);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: width 0.15s, height 0.15s;
+}
+
+.aura-laser-dot.pinch-pulse {
+  width: 32px;
+  height: 32px;
+  background: #22c55e;
+  box-shadow: 0 0 30px #22c55e;
+}
+
+.aura-laser-focus {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: 2px !important;
+}

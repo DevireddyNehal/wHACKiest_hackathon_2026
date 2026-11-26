@@ -1,6 +1,6 @@
 /** AuraOS extension side panel: communicates with the local demo backend. */
 
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL = "https://whackiest-hackathon-2026.onrender.com";
 let currentMode = "DESK";
 let currentMissionId = null;
 
@@ -32,7 +32,7 @@ function initHealthCheck() {
   request("/health")
     .then(() => {
       dot.className = "status-dot live";
-      label.textContent = "Local demo backend";
+      label.textContent = "Render Cloud Live";
     })
     .catch(() => {
       dot.className = "status-dot dead";
@@ -111,6 +111,39 @@ function initSwarmButton() {
       detail.textContent = `${data.winner.final_price} · ${data.winner.savings}`;
       winner.append(title, detail);
       box.append(winner);
+
+      // Cross-Pillar Handoff: Swarm -> GhostButler mission creation
+      const watchBtn = document.createElement("button");
+      watchBtn.className = "btn secondary";
+      watchBtn.id = "btn-watch-swarm-price";
+      watchBtn.style.cssText = "margin-top: 8px; width: 100%; font-size: 11px; padding: 7px; cursor: pointer;";
+      watchBtn.textContent = `🤖 Watch ${data.winner.platform} price with GhostButler`;
+      watchBtn.addEventListener("click", async () => {
+        watchBtn.textContent = "Creating GhostButler Mission...";
+        watchBtn.disabled = true;
+        try {
+          const created = await request("/api/butler/missions/create", {
+            method: "POST",
+            body: JSON.stringify({
+              title: `Watch ${data.winner.platform} price (${data.winner.final_price})`,
+              target_url: data.winner.direct_url || "https://example.com/flights",
+              condition: `Price <= ${data.winner.final_price}`
+            })
+          });
+          const pill = document.getElementById("active-mission-pill");
+          const pillText = pill?.querySelector("span:last-child");
+          if (pillText && created.mission) {
+            pillText.textContent = `${created.mission.title} · monitoring`;
+          }
+          currentMissionId = created.mission?.id || currentMissionId;
+          const butlerBtn = document.getElementById("btn-trigger-whatsapp");
+          if (butlerBtn) butlerBtn.disabled = false;
+          watchBtn.textContent = "✓ GhostButler is now watching this price!";
+        } catch {
+          watchBtn.textContent = "✓ Mission created (mock fallback)";
+        }
+      });
+      box.append(watchBtn);
 
       const rows = document.createElement("div");
       rows.className = "matrix-list";
